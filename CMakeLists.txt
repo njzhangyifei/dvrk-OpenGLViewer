@@ -60,7 +60,7 @@ if (USE_IMGUI)
     include_directories(${IMGUI_DIR})
     add_library(ImGui STATIC ${IMGUI_SOURCES} ${IMGUI_HEADERS})
     set(EXTRA_LIBS ${EXTRA_LIBS} ImGui)
-    set(IMGUI_IMPL ${IMGUI_DIR}/imgui_impl_glfw_gl3.h ${IMGUI_DIR}/imgui_impl_glfw_gl3.cpp ImageProvider.cpp ImageProvider.h)
+    set(IMGUI_IMPL ${IMGUI_DIR}/imgui_impl_glfw_gl3.h ${IMGUI_DIR}/imgui_impl_glfw_gl3.cpp ImageProvider.cpp ImageProvider.h StereoWindow.cpp StereoWindow.h)
 endif()
 
 add_executable(OpenGLViewer

@@ -5,6 +5,9 @@
 #ifndef PA4_SHADOWMAPQUAD_H
 #define PA4_SHADOWMAPQUAD_H
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include <vtk_glew.h>
 #include <glm/glm.hpp>
 

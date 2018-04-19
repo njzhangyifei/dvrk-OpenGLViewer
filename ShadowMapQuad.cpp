@@ -17,10 +17,10 @@ ShadowMapQuad::ShadowMapQuad(
     float br_y = bottom_right.y;
     quadVertices = new GLfloat[20]{
             // positions        // texture Coords
-            tl_x, br_y, 0.0f, 0.0f, 0.0f,
-            tl_x, tl_y, 0.0f, 0.0f, 1.0f,
-            br_x, br_y, 0.0f, 1.0f, 0.0f,
-            br_x, tl_y, 0.0f, 1.0f, 1.0f,
+            tl_x, br_y, 0.0f, 0.0f, 1.0f,
+            tl_x, tl_y, 0.0f, 0.0f, 0.0f,
+            br_x, br_y, 0.0f, 1.0f, 1.0f,
+            br_x, tl_y, 0.0f, 1.0f, 0.0f,
     };
     load_data();
 }
@@ -39,6 +39,9 @@ void ShadowMapQuad::load_data(){
 
 void ShadowMapQuad::draw(GLuint texture_id) {
     glUseProgram(shaderProgram);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_sampler"), 0);
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);

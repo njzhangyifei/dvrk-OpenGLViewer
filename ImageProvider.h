@@ -14,9 +14,10 @@ class ImageProvider {
 public:
     ImageProvider(uint32_t height, uint32_t width, std::string fallback_msg = std::string("No Signal"));
     void generate_texture();
-    void upload(GLuint texture_id);
+    void upload();
     // RGB RGB RGB RGB RGB, row by column
     cv::Mat image;
+    GLuint texture_id;
     uint8_t * raw_image_data;
     uint32_t height;
     uint32_t width;
