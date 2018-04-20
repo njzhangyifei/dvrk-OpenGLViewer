@@ -6,8 +6,21 @@
 #define OPENGLVIEWER_STEREOWINDOW_H
 
 
-class StereoWindow {
+#include <GLFW/glfw3.h>
+#include <mutex>
 
+class StereoWindow {
+public:
+    StereoWindow(GLFWmonitor * monitor_left, GLFWmonitor * monitor_right);
+    GLFWwindow * window_L;
+    GLFWwindow * window_R;
+
+    int width;
+    int height;
+
+    std::mutex gl_lock;
+
+    void event_loop();
 };
 
 
