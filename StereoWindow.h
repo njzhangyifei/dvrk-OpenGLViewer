@@ -8,6 +8,9 @@
 
 #include <GLFW/glfw3.h>
 #include <mutex>
+#include <vector>
+
+class IRenderProcedure;
 
 class StereoWindow {
 public:
@@ -20,7 +23,14 @@ public:
 
     std::mutex gl_lock;
 
+    std::vector<std::shared_ptr<IRenderProcedure>> left_procedures;
+    std::vector<std::shared_ptr<IRenderProcedure>> right_procedures;
+
     void event_loop();
+
+    void render_left();
+
+    void render_right();
 };
 
 

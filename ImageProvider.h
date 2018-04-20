@@ -17,10 +17,13 @@ public:
     void upload();
     // RGB RGB RGB RGB RGB, row by column
     cv::Mat image;
+
+    bool in_gpu;
     GLuint texture_id;
-    uint8_t * raw_image_data;
     uint32_t height;
     uint32_t width;
+
+    void delete_texture();
 };
 
 

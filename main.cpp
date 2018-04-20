@@ -14,11 +14,9 @@
 #include <GLFW/glfw3.h>
 #include <mutex>
 #include "shader.h"
-#include "ShadowMapQuad.h"
 #include "ImageProvider.h"
-
-#define SHADOW_MAP_QUAD_V_SHADER_PATH "./debug_shadow_map.vert"
-#define SHADOW_MAP_QUAD_F_SHADER_PATH "./debug_shadow_map.frag"
+#include "StereoWindow.h"
+#include "TextureRenderer.h"
 
 static void error_callback(int error, const char* description)
 {
@@ -36,85 +34,94 @@ int main(int, char *[])
 //    cv::imshow("test", img.image);
 //    cv::waitKey(0);
     glfwInit();
-    GLFWwindow * window_L = glfwCreateWindow(400, 400, "test_l", NULL, NULL);
-    GLFWwindow * window_R = glfwCreateWindow(400, 400, "test_r", NULL, window_L);
+    std::unique_ptr<StereoWindow> stereo_window = std::make_unique<StereoWindow>(nullptr, nullptr);
 
+//    ImageProvider img_l (1440, 1080, "test_l");
+//    ImageProvider img_r (1440, 1080, "test_r");
+//    img_l.generate_texture();
+//    img_r.generate_texture();
 
-    glfwSetKeyCallback(window_L, key_callback);
+    std::shared_ptr<TextureRenderer> camera_renderer = std::make_shared<TextureRenderer>();
+    stereo_window->left_procedures.push_back(camera_renderer);
+    stereo_window->right_procedures.push_back(camera_renderer);
 
-    glfwMakeContextCurrent(window_L);
-    glfwSwapInterval(1);
-    glfwMakeContextCurrent(window_R);
-    glfwSwapInterval(1);
+    stereo_window->event_loop();
 
-    glfwMakeContextCurrent(window_R);
-    glewInit();
-    auto shadow_map_quad_shader = LoadShaders(SHADOW_MAP_QUAD_V_SHADER_PATH, SHADOW_MAP_QUAD_F_SHADER_PATH);
-    auto shadow_map_quad = std::unique_ptr<ShadowMapQuad>(new ShadowMapQuad({0.0, 1.0}, {1.0, 0.0}));
-    glfwMakeContextCurrent(window_L);
-    shadow_map_quad->load_data();
-    shadow_map_quad->shaderProgram = shadow_map_quad_shader;
-
-    ImageProvider img_l (1440, 1080, "test_l");
-    ImageProvider img_r (1440, 1080, "test_r");
-    img_l.generate_texture();
-    img_r.generate_texture();
-
-    std::mutex gl_lock;
-
-    std::cout << "Main Loops Begin" << std::endl;
-    glfwMakeContextCurrent(window_L);
-    std::thread t([&]() {
-        glfwMakeContextCurrent(window_R);
-        while (!glfwWindowShouldClose(window_R)) {
-            gl_lock.lock();
-            int width, height;
-
-            static int i = 0;
-            std::cerr << "uploading" << std::endl;
-            img_l.image = cv::Mat(img_l.height, img_l.width, CV_8UC3, {0,0,0});
-            cv::putText(img_l.image, std::to_string((i++)%100),
-                        {10, height/2},
-                        cv::FONT_HERSHEY_SIMPLEX, 2, {0,255,0}, 2, cv::LINE_AA);
-            auto now = std::chrono::high_resolution_clock::now();
-            img_l.upload();
-            img_r.upload();
-            auto now_ = std::chrono::high_resolution_clock::now();
-            std::cerr << "time: "
-                      << std::chrono::duration_cast<std::chrono::milliseconds>(now_ - now).count()
-                      << std::endl;
-
-            glfwGetFramebufferSize(window_R, &width, &height);
-            glViewport(0, 0, width, height);
-
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            shadow_map_quad->draw(img_r.texture_id);
-            glFlush();
-            gl_lock.unlock();
-
-            glfwSwapBuffers(window_R);
-        }
-    });
-    while (!glfwWindowShouldClose(window_L)){
-        gl_lock.lock();
-        glfwPollEvents();
-        int width, height;
-        glfwGetFramebufferSize(window_L, &width, &height);
-        glViewport(0, 0, width, height);
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        shadow_map_quad->draw(img_l.texture_id);
-        glFlush();
-        gl_lock.unlock();
-
-        glfwSwapBuffers(window_L);
-    }
-    t.join();
-
-    glfwDestroyWindow(window_L);
-    glfwDestroyWindow(window_R);
-    glfwTerminate();
-    glDeleteProgram(shadow_map_quad_shader);
+//    GLFWwindow * window_L = glfwCreateWindow(400, 400, "test_l", NULL, NULL);
+//    GLFWwindow * window_R = glfwCreateWindow(400, 400, "test_r", NULL, window_L);
+//
+//
+//    glfwSetKeyCallback(window_L, key_callback);
+//
+//    glfwMakeContextCurrent(window_L);
+//    glfwSwapInterval(1);
+//    glfwMakeContextCurrent(window_R);
+//    glfwSwapInterval(1);
+//
+//    glfwMakeContextCurrent(window_R);
+//    glewInit();
+//    auto shadow_map_quad_shader = LoadShaders(SHADOW_MAP_QUAD_V_SHADER_PATH, SHADOW_MAP_QUAD_F_SHADER_PATH);
+//    auto shadow_map_quad = std::unique_ptr<ShadowMapQuad>(new ShadowMapQuad({0.0, 1.0}, {1.0, 0.0}));
+//    glfwMakeContextCurrent(window_L);
+//    shadow_map_quad->load_data();
+//    shadow_map_quad->shaderProgram = shadow_map_quad_shader;
+//
+//
+//    std::mutex gl_lock;
+//
+//    std::cout << "Main Loops Begin" << std::endl;
+//    glfwMakeContextCurrent(window_L);
+//    std::thread t([&]() {
+//        glfwMakeContextCurrent(window_R);
+//        while (!glfwWindowShouldClose(window_R)) {
+//            gl_lock.lock();
+//            int width, height;
+//
+//            static int i = 0;
+//            std::cerr << "uploading" << std::endl;
+//            img_l.image = cv::Mat(img_l.height, img_l.width, CV_8UC3, {0,0,0});
+//            cv::putText(img_l.image, std::to_string((i++)%100),
+//                        {10, height/2},
+//                        cv::FONT_HERSHEY_SIMPLEX, 2, {0,255,0}, 2, cv::LINE_AA);
+//            auto now = std::chrono::high_resolution_clock::now();
+//            img_l.upload();
+//            img_r.upload();
+//            auto now_ = std::chrono::high_resolution_clock::now();
+//            std::cerr << "time: "
+//                      << std::chrono::duration_cast<std::chrono::milliseconds>(now_ - now).count()
+//                      << std::endl;
+//
+//            glfwGetFramebufferSize(window_R, &width, &height);
+//            glViewport(0, 0, width, height);
+//
+//            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//            shadow_map_quad->draw(img_r.texture_id);
+//            glFlush();
+//            gl_lock.unlock();
+//
+//            glfwSwapBuffers(window_R);
+//        }
+//    });
+//    while (!glfwWindowShouldClose(window_L)){
+//        gl_lock.lock();
+//        glfwPollEvents();
+//        int width, height;
+//        glfwGetFramebufferSize(window_L, &width, &height);
+//        glViewport(0, 0, width, height);
+//
+//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//        shadow_map_quad->draw(img_l.texture_id);
+//        glFlush();
+//        gl_lock.unlock();
+//
+//        glfwSwapBuffers(window_L);
+//    }
+//    t.join();
+//
+//    glfwDestroyWindow(window_L);
+//    glfwDestroyWindow(window_R);
+//    glfwTerminate();
+//    glDeleteProgram(shadow_map_quad_shader);
     return EXIT_SUCCESS;
     // This creates a polygonal cylinder model with eight circumferential facets
     // (i.e, in practice an octagonal prism).

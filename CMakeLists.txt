@@ -60,14 +60,18 @@ if (USE_IMGUI)
     include_directories(${IMGUI_DIR})
     add_library(ImGui STATIC ${IMGUI_SOURCES} ${IMGUI_HEADERS})
     set(EXTRA_LIBS ${EXTRA_LIBS} ImGui)
-    set(IMGUI_IMPL ${IMGUI_DIR}/imgui_impl_glfw_gl3.h ${IMGUI_DIR}/imgui_impl_glfw_gl3.cpp ImageProvider.cpp ImageProvider.h StereoWindow.cpp StereoWindow.h)
+    set(IMGUI_IMPL ${IMGUI_DIR}/imgui_impl_glfw_gl3.h ${IMGUI_DIR}/imgui_impl_glfw_gl3.cpp
+            )
 endif()
 
 add_executable(OpenGLViewer
         ${IMGUI_IMPL}
         main.cpp
         shader.h shader.cpp
-        ShadowMapQuad.h ShadowMapQuad.cpp
+        ImageProvider.cpp ImageProvider.h
+        StereoWindow.cpp StereoWindow.h
+        IRenderProcedure.h
+        TextureRenderer.cpp TextureRenderer.h
         json.hpp
         )
 
