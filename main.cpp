@@ -48,7 +48,7 @@ int main(int argc, char * argv [])
 
     // monocular image provider
     std::shared_ptr<ImageProvider> image_provider_left = std::make_shared<ImageProvider>(500, 500);
-    std::shared_ptr<ImageProvider> image_provider_right = std::make_shared<ImageProvider>(500, 500);
+    std::shared_ptr<ImageProvider> image_provider_right = std::make_shared<ImageProvider>(1500, 1500);
 
     // register to ROS stereo image
     stereo_image_provider->image_provider_left = image_provider_left;
@@ -65,7 +65,7 @@ int main(int argc, char * argv [])
 
 //    ImageProvider image_left(stereo_window->height, stereo_window->width,);
 
-    cv::namedWindow("test");
+//    cv::namedWindow("test");
 //    while (true) {
 //        cv::imshow("test", image_provider_left->image);
 //        cv::waitKey(1);

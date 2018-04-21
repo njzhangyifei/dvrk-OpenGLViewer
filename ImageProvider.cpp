@@ -20,11 +20,11 @@ void ImageProvider::generate_texture() {
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, // pyramid level
-                 GL_RGB, height, width,
+                 GL_RGB, width, height,
                  0,  // border
                  GL_RGB, GL_UNSIGNED_BYTE,
                  image.data);
-//                 image.ptr());
+    glBindTexture(GL_TEXTURE_2D, 0);
     in_gpu = true;
 }
 
@@ -40,15 +40,15 @@ void ImageProvider::upload() {
         this->height = (uint32_t) std::max(image.rows, 1);
         this->width = (uint32_t) std::max(image.cols, 1);
         generate_texture();
+    } else {
+        glBindTexture(GL_TEXTURE_2D, texture_id);
+        glTexImage2D(GL_TEXTURE_2D, 0, // pyramid level
+                     GL_RGB, width, height,
+                     0,  // border
+                     GL_RGB, GL_UNSIGNED_BYTE,
+                     image.ptr());
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
-//    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, // pyramid level
-                 GL_RGB, height, width,
-                 0,  // border
-                 GL_RGB, GL_UNSIGNED_BYTE,
-                 image.ptr());
-//    glBindTexture(GL_TEXTURE_2D, 0);
     image_lock.unlock();
 }
 

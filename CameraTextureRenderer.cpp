@@ -7,7 +7,6 @@
 void CameraTextureRenderer::execute(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) {
     if (is_left){
         // upload textures;
-        image_provider_left->delete_texture();
         image_provider_left->upload();
         image_provider_right->upload();
         this->texture_id_left = image_provider_left->texture_id;
