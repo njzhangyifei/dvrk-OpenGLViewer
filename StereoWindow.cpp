@@ -39,8 +39,8 @@ static void resize_callback(GLFWwindow* window, int width, int height)
 }
 
 StereoWindow::StereoWindow(GLFWmonitor * monitor_left, GLFWmonitor * monitor_right) {
-    window_L = glfwCreateWindow(400, 400, "Left", monitor_left, NULL);
-    window_R = glfwCreateWindow(400, 400, "Right", monitor_right, window_L);
+    window_L = glfwCreateWindow(1920, 1080, "Left", monitor_left, NULL);
+    window_R = glfwCreateWindow(1920, 1080, "Right", monitor_right, window_L);
     glfwSetWindowUserPointer(window_L, this);
     glfwSetWindowUserPointer(window_R, this);
     glfwSetKeyCallback(window_L, key_callback);

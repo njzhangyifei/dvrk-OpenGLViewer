@@ -61,7 +61,6 @@ void TextureRenderer::load_data() {
 
 void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, bool is_left) {
     glUseProgram(shaderProgram);
-//    std::cerr << typeid(*this).name() << " rendering on " << (is_left ? "[L]" : "[R]")<< std::endl;
     glActiveTexture(GL_TEXTURE0);
     if (is_left) {
         glBindTexture(GL_TEXTURE_2D, texture_id_left);

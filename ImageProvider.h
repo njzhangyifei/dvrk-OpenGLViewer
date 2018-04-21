@@ -9,12 +9,16 @@
 #include <string>
 #include <vtk_glew.h>
 #include <opencv2/opencv.hpp>
+#include <mutex>
 
 class ImageProvider {
+protected:
+    std::mutex image_lock;
+    void generate_texture();
 public:
     ImageProvider(uint32_t height, uint32_t width, std::string fallback_msg = std::string("No Signal"));
-    void generate_texture();
     void upload();
+    void set_image(const cv::Mat & m);
     // RGB RGB RGB RGB RGB, row by column
     cv::Mat image;
 

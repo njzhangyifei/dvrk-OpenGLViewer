@@ -1,15 +1,37 @@
-cmake_minimum_required(VERSION 3.9)
-project(OpenGLViewer)
+cmake_minimum_required(VERSION 3.5)
+project(dvrk-OpenGLViewer)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/FindTBB)
 
 set(CMAKE_CXX_STANDARD 14)
+
 set(USE_IMGUI TRUE)
 
-set(VTK_DIR "~/develop/opensource/VTK-build/")
-set(TBB_ROOT_DIR "~/develop/opensource/tbb2018_20171205oss")
+#set(VTK_DIR "~/develop/opensource/VTK-build/")
+set(VTK_DIR "/home/arclab/opensource/vtk-8.1.0")
+#set(OpenCV_DIR "/home/arclab/opensource/opencv-3.4.1")
+#set(TBB_ROOT_DIR "~/develop/opensource/tbb2018_20171205oss")
+set(TBB_ROOT_DIR "/home/arclab/opensource/tbb2018_20171205oss")
 if (WIN32)
     set(OpenCV_DIR "~/develop/opensource/opencv-build/install")
+endif()
+
+if (NOT DEFINED WIN32)
+    find_package(catkin REQUIRED COMPONENTS
+      cv_bridge
+      image_transport
+      sensor_msgs
+    )
+    catkin_package(
+    #  INCLUDE_DIRS include
+    #  LIBRARIES dvrk-OpenGLViewer
+        CATKIN_DEPENDS cv_bridge image_transport message_runtime sensor_msgs
+    #  DEPENDS system_lib
+    )
+    include_directories(
+      ${catkin_INCLUDE_DIRS}
+    )
+    set(EXTRA_LIBS ${EXTRA_LIBS} ${catkin_LIBRARIES})
 endif()
 
 # TBB
@@ -17,7 +39,6 @@ find_package(TBB)
 message(STATUS "TBB_VERSION: ${TBB_VERSION}")
 include_directories(${TBB_INCLUDE_DIRS})
 add_definitions(${TBB_DEFINITIONS})
-
 
 
 find_package(PkgConfig REQUIRED)
@@ -60,11 +81,10 @@ if (USE_IMGUI)
     include_directories(${IMGUI_DIR})
     add_library(ImGui STATIC ${IMGUI_SOURCES} ${IMGUI_HEADERS})
     set(EXTRA_LIBS ${EXTRA_LIBS} ImGui)
-    set(IMGUI_IMPL ${IMGUI_DIR}/imgui_impl_glfw_gl3.h ${IMGUI_DIR}/imgui_impl_glfw_gl3.cpp
-            )
+    set(IMGUI_IMPL ${IMGUI_DIR}/imgui_impl_glfw_gl3.h ${IMGUI_DIR}/imgui_impl_glfw_gl3.cpp ROSStereoImageProvider.cpp ROSStereoImageProvider.h)
 endif()
 
-add_executable(OpenGLViewer
+add_executable(dvrk-OpenGLViewer
         ${IMGUI_IMPL}
         main.cpp
         shader.h shader.cpp
@@ -73,10 +93,15 @@ add_executable(OpenGLViewer
         IRenderProcedure.h
         TextureRenderer.cpp TextureRenderer.h
         json.hpp
-        )
+        CameraTextureRenderer.cpp CameraTextureRenderer.h)
+
+file(GLOB FRAG_SHADERS "*.frag")
+file(GLOB VERT_SHADERS "*.vert")
+#file(COPY ${FRAG_SHADERS} DESTINATION ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION})
+#file(COPY ${VERT_SHADERS} DESTINATION ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION})
 
 target_link_libraries(
-        OpenGLViewer
+        dvrk-OpenGLViewer
         pthread
         ${TBB_LIBRARIES}
         ${GLFW_LIBRARIES}
@@ -86,4 +111,3 @@ target_link_libraries(
         ${OpenCV_LIBS}
         ${EXTRA_LIBS}
 )
-

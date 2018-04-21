@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <vtkCylinderSource.h>
 #include <vtkPolyDataMapper.h>
@@ -13,10 +14,13 @@
 #include <vtk_glew.h>
 #include <GLFW/glfw3.h>
 #include <mutex>
+#include <ros/init.h>
 #include "shader.h"
 #include "ImageProvider.h"
 #include "StereoWindow.h"
 #include "TextureRenderer.h"
+#include "ROSStereoImageProvider.h"
+#include "CameraTextureRenderer.h"
 
 static void error_callback(int error, const char* description)
 {
@@ -28,22 +32,44 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         glfwSetWindowShouldClose(window, true);
 }
 
-int main(int, char *[])
+int main(int argc, char * argv [])
 {
 //    cv::namedWindow("test", CV_WINDOW_AUTOSIZE);
 //    cv::imshow("test", img.image);
 //    cv::waitKey(0);
+
+    ros::init(argc, argv, "dvrk_OpenGLViewer");
+    ros::NodeHandlePtr nh(new ros::NodeHandle());
+
+    ros::AsyncSpinner spinner(2);
+    spinner.start();
+
+    std::unique_ptr<ROSStereoImageProvider> stereo_image_provider = std::make_unique<ROSStereoImageProvider>(nh);
+
+    // monocular image provider
+    std::shared_ptr<ImageProvider> image_provider_left = std::make_shared<ImageProvider>(500, 500);
+    std::shared_ptr<ImageProvider> image_provider_right = std::make_shared<ImageProvider>(500, 500);
+
+    // register to ROS stereo image
+    stereo_image_provider->image_provider_left = image_provider_left;
+    stereo_image_provider->image_provider_right = image_provider_right;
+
     glfwInit();
     std::unique_ptr<StereoWindow> stereo_window = std::make_unique<StereoWindow>(nullptr, nullptr);
 
-//    ImageProvider img_l (1440, 1080, "test_l");
-//    ImageProvider img_r (1440, 1080, "test_r");
-//    img_l.generate_texture();
-//    img_r.generate_texture();
-
-    std::shared_ptr<TextureRenderer> camera_renderer = std::make_shared<TextureRenderer>();
+    std::shared_ptr<CameraTextureRenderer> camera_renderer = std::make_shared<CameraTextureRenderer>();
+    camera_renderer->image_provider_left = image_provider_left;
+    camera_renderer->image_provider_right = image_provider_right;
     stereo_window->left_procedures.push_back(camera_renderer);
     stereo_window->right_procedures.push_back(camera_renderer);
+
+//    ImageProvider image_left(stereo_window->height, stereo_window->width,);
+
+    cv::namedWindow("test");
+//    while (true) {
+//        cv::imshow("test", image_provider_left->image);
+//        cv::waitKey(1);
+//    }
 
     stereo_window->event_loop();
 
