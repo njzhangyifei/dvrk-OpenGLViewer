@@ -16,7 +16,7 @@ protected:
     GLuint VAO_left;
     GLuint VAO_right;
     GLfloat * quadVertices;
-    GLuint shaderProgram;
+    static GLuint shaderProgram;
     void load_data();
 
 public:

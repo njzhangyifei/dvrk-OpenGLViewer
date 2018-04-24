@@ -14,6 +14,7 @@
 class ImageProvider {
 protected:
     std::mutex image_lock;
+    bool need_upload;
     void generate_texture();
 public:
     ImageProvider(uint32_t height, uint32_t width, std::string fallback_msg = std::string("No Signal"));

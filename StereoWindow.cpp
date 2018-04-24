@@ -8,6 +8,10 @@
 #include <opencv2/core/mat.hpp>
 #include "IRenderProcedure.h"
 #include "StereoWindow.h"
+#ifdef __WITH_IMGUI
+#include <imgui.h>
+#include <imgui_impl_glfw_gl3.h>
+#endif
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -21,29 +25,26 @@ static void resize_callback(GLFWwindow* window, int width, int height)
     glfwGetFramebufferSize(window, &width, &height); // In case your Mac has a retina display
 #endif
     StereoWindow * _this = static_cast<StereoWindow *>(glfwGetWindowUserPointer(window));
-    GLFWwindow * previous_context = glfwGetCurrentContext();
-    glfwMakeContextCurrent(window);
     _this->width = width;
     _this->height = height;
-    // Set the viewport size
-
-//    vtk stuff
-//    int info[4];
-//    glGetIntegerv(GL_VIEWPORT, info);
-//    renderWindow->SetPosition(info[0], info[1]);
-//    renderWindow->SetSize(info[2], info[3]);
-    glfwMakeContextCurrent(previous_context);
+    // request resize callback
+    _this->resized_L = true;
+    _this->resized_R = true;
     if (window == _this->window_L) {
         glfwSetWindowSize(_this->window_R, width, height);
     }
 }
 
 StereoWindow::StereoWindow(GLFWmonitor * monitor_left, GLFWmonitor * monitor_right) {
-    window_L = glfwCreateWindow(400, 400, "Left", monitor_left, NULL);
-    window_R = glfwCreateWindow(400, 400, "Right", monitor_right, window_L);
+    window_L = glfwCreateWindow(800, 400, "Left", monitor_left, NULL);
+    window_R = glfwCreateWindow(800, 400, "Right", monitor_right, window_L);
+    resized_L = true;
+    resized_R = true;
     glfwSetWindowUserPointer(window_L, this);
     glfwSetWindowUserPointer(window_R, this);
     glfwSetKeyCallback(window_L, key_callback);
+    glfwMakeContextCurrent(window_L);
+    glewInit();
 
     glfwGetFramebufferSize(window_L, &width, &height);
 
@@ -56,10 +57,6 @@ StereoWindow::StereoWindow(GLFWmonitor * monitor_left, GLFWmonitor * monitor_rig
     glfwSetWindowSizeCallback(window_R, &resize_callback);
     resize_callback(window_R, width, height);
     glfwSwapInterval(1);
-
-
-    glfwMakeContextCurrent(window_L);
-    glewInit();
 }
 
 void StereoWindow::render_left() {
@@ -92,6 +89,11 @@ void StereoWindow::render_right() {
 void StereoWindow::event_loop() {
     glfwMakeContextCurrent(window_L);
 
+#ifdef __WITH_IMGUI
+    ImGui_ImplGlfwGL3_Init(window_L, true);
+    ImGui::StyleColorsClassic();
+#endif
+
     // prepare right
     std::thread t([&]() {
         glfwMakeContextCurrent(window_R);
@@ -102,11 +104,16 @@ void StereoWindow::event_loop() {
         gl_lock.unlock();
         while (!glfwWindowShouldClose(window_R)) {
             gl_lock.lock();
-            glViewport(0, 0, width, height);
-            render_left();
+            if (resized_R){
+                glViewport(0, 0, width, height);
+                for (int i = 0; i < right_procedures.size(); ++i) {
+                    right_procedures[i]->resize_callback(this, window_L, true);
+                }
+                resized_R = false;
+            }
+            render_right();
             glFlush();
             gl_lock.unlock();
-
             glfwSwapBuffers(window_R);
         }
     });
@@ -117,12 +124,29 @@ void StereoWindow::event_loop() {
         left_procedures[i]->setup(this, window_L,  true);
     }
     gl_lock.unlock();
+
     while (!glfwWindowShouldClose(window_L)){
         gl_lock.lock();
         glfwPollEvents();
-        glViewport(0, 0, width, height);
-        render_right();
+        if (resized_L){
+            glViewport(0, 0, width, height);
+            for (int i = 0; i < left_procedures.size(); ++i) {
+                left_procedures[i]->resize_callback(this, window_L, true);
+            }
+            resized_L = false;
+        }
+        render_left();
         glFlush();
+
+#ifdef __WITH_IMGUI
+        ImGui_ImplGlfwGL3_NewFrame();
+        {
+            ImGui::Begin("test");
+            ImGui::End();
+        }
+        ImGui::ShowMetricsWindow();
+        ImGui::Render();
+#endif
         gl_lock.unlock();
 
         glfwSwapBuffers(window_L);

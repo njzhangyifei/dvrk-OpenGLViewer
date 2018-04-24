@@ -15,6 +15,7 @@
 
 #define SHADOW_MAP_QUAD_V_SHADER_PATH "./debug_shadow_map.vert"
 #define SHADOW_MAP_QUAD_F_SHADER_PATH "./debug_shadow_map.frag"
+GLuint TextureRenderer::shaderProgram = 0;
 
 TextureRenderer::TextureRenderer() {
     glm::vec2 top_left = glm::vec2({-1, 1});
@@ -30,7 +31,8 @@ TextureRenderer::TextureRenderer() {
             tl_x, tl_y, 0.0f, 0.0f, 0.0f,
             br_x, tl_y, 0.0f, 1.0f, 0.0f,
     };
-    shaderProgram = LoadShaders(SHADOW_MAP_QUAD_V_SHADER_PATH, SHADOW_MAP_QUAD_F_SHADER_PATH);
+    if (!shaderProgram)
+        shaderProgram = LoadShaders(SHADOW_MAP_QUAD_V_SHADER_PATH, SHADOW_MAP_QUAD_F_SHADER_PATH);
 }
 
 void TextureRenderer::setup(StereoWindow * stereoWindow, GLFWwindow *context, bool is_left) {
@@ -75,6 +77,7 @@ void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, 
     }
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
+    glClear(GL_DEPTH_BUFFER_BIT);
 }
 
 void TextureRenderer::teardown(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) {

@@ -11,9 +11,10 @@
 
 class IRenderProcedure {
 public:
-    virtual void execute(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left) = 0;
-    virtual void setup(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left) = 0;
-    virtual void teardown(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left) = 0;
+    virtual void execute(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left){};
+    virtual void setup(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left){};
+    virtual void teardown(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left){};
+    virtual void resize_callback(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left){};
 };
 
 #endif //OPENGLVIEWER_IRENDERPROCEDURE_H

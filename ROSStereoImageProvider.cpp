@@ -20,14 +20,14 @@ ROSStereoImageProvider::ROSStereoImageProvider(ros::NodeHandlePtr nh_ptr) {
 
 void ROSStereoImageProvider::image_callback_left(const sensor_msgs::ImageConstPtr & msg){
     if (image_provider_left) {
-        cv_share_left = cv_bridge::toCvCopy(msg, "rgb8");
+        cv_share_left = cv_bridge::toCvShare(msg, "rgb8");
         image_provider_left->set_image(cv_share_left->image);
     }
 }
 
 void ROSStereoImageProvider::image_callback_right(const sensor_msgs::ImageConstPtr & msg){
     if (image_provider_right){
-        cv_share_right = cv_bridge::toCvCopy(msg, "rgb8");
+        cv_share_right = cv_bridge::toCvShare(msg, "rgb8");
         image_provider_right->set_image(cv_share_right->image);
     }
 }

@@ -85,7 +85,8 @@ if (USE_IMGUI)
     include_directories(${IMGUI_DIR})
     add_library(ImGui STATIC ${IMGUI_SOURCES} ${IMGUI_HEADERS})
     set(EXTRA_LIBS ${EXTRA_LIBS} ImGui)
-    set(IMGUI_IMPL ${IMGUI_DIR}/imgui_impl_glfw_gl3.h ${IMGUI_DIR}/imgui_impl_glfw_gl3.cpp ROSStereoImageProvider.cpp ROSStereoImageProvider.h)
+    set(IMGUI_IMPL ${IMGUI_DIR}/imgui_impl_glfw_gl3.h ${IMGUI_DIR}/imgui_impl_glfw_gl3.cpp
+            vtkExternalOpenGLRenderWindowFixed.cpp vtkExternalOpenGLRenderWindowFixed.h)
 endif()
 
 add_executable(dvrk-OpenGLViewer
@@ -96,8 +97,10 @@ add_executable(dvrk-OpenGLViewer
         StereoWindow.cpp StereoWindow.h
         IRenderProcedure.h
         TextureRenderer.cpp TextureRenderer.h
+        ROSStereoImageProvider.cpp ROSStereoImageProvider.h
+        GLError.cpp GLError.h
         json.hpp
-        CameraTextureRenderer.cpp CameraTextureRenderer.h)
+        CameraTextureRenderer.cpp CameraTextureRenderer.h VTKRenderProcedure.cpp VTKRenderProcedure.h)
 
 file(GLOB FRAG_SHADERS "*.frag")
 file(GLOB VERT_SHADERS "*.vert")

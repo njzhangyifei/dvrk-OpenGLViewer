@@ -21,6 +21,7 @@
 #include "TextureRenderer.h"
 #include "ROSStereoImageProvider.h"
 #include "CameraTextureRenderer.h"
+#include "VTKRenderProcedure.h"
 
 static void error_callback(int error, const char* description)
 {
@@ -47,14 +48,15 @@ int main(int argc, char * argv [])
     std::unique_ptr<ROSStereoImageProvider> stereo_image_provider = std::make_unique<ROSStereoImageProvider>(nh);
 
     // monocular image provider
-    std::shared_ptr<ImageProvider> image_provider_left = std::make_shared<ImageProvider>(500, 500);
-    std::shared_ptr<ImageProvider> image_provider_right = std::make_shared<ImageProvider>(1500, 1500);
+    std::shared_ptr<ImageProvider> image_provider_left = std::make_shared<ImageProvider>(1920, 1080);
+    std::shared_ptr<ImageProvider> image_provider_right = std::make_shared<ImageProvider>(1920, 1080);
 
     // register to ROS stereo image
     stereo_image_provider->image_provider_left = image_provider_left;
     stereo_image_provider->image_provider_right = image_provider_right;
 
     glfwInit();
+    glfwSetErrorCallback(error_callback);
     std::unique_ptr<StereoWindow> stereo_window = std::make_unique<StereoWindow>(nullptr, nullptr);
 
     std::shared_ptr<CameraTextureRenderer> camera_renderer = std::make_shared<CameraTextureRenderer>();
@@ -62,6 +64,10 @@ int main(int argc, char * argv [])
     camera_renderer->image_provider_right = image_provider_right;
     stereo_window->left_procedures.push_back(camera_renderer);
     stereo_window->right_procedures.push_back(camera_renderer);
+
+    std::shared_ptr<VTKRenderProcedure> vtk_renderer = std::make_shared<VTKRenderProcedure>();
+    stereo_window->left_procedures.push_back(vtk_renderer);
+    stereo_window->right_procedures.push_back(vtk_renderer);
 
 //    ImageProvider image_left(stereo_window->height, stereo_window->width,);
 

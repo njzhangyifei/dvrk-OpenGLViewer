@@ -8,20 +8,25 @@
 
 #include <GLFW/glfw3.h>
 #include <mutex>
+#include <memory>
 #include <vector>
 
 class IRenderProcedure;
 
 class StereoWindow {
+protected:
+    std::mutex gl_lock;
+
 public:
     StereoWindow(GLFWmonitor * monitor_left, GLFWmonitor * monitor_right);
     GLFWwindow * window_L;
     GLFWwindow * window_R;
 
+    bool resized_L;
+    bool resized_R;
+
     int width;
     int height;
-
-    std::mutex gl_lock;
 
     std::vector<std::shared_ptr<IRenderProcedure>> left_procedures;
     std::vector<std::shared_ptr<IRenderProcedure>> right_procedures;
@@ -31,6 +36,7 @@ public:
     void render_left();
 
     void render_right();
+
 };
 
 
