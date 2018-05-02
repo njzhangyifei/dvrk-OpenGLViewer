@@ -5,6 +5,7 @@
 #include <memory>
 #include "TextureRenderer.h"
 #include "shader.h"
+#include "get_cwd.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -15,9 +16,13 @@
 
 #define SHADOW_MAP_QUAD_V_SHADER_PATH "./debug_shadow_map.vert"
 #define SHADOW_MAP_QUAD_F_SHADER_PATH "./debug_shadow_map.frag"
+
+#define TEXTURE_MAP_DEPTH_V_SHADER_PATH "./texture_map_depth.vert"
+#define TEXTURE_MAP_DEPTH_F_SHADER_PATH "./texture_map_depth.frag"
+
 GLuint TextureRenderer::shaderProgram = 0;
 
-TextureRenderer::TextureRenderer() {
+TextureRenderer::TextureRenderer(bool depth) {
     glm::vec2 top_left = glm::vec2({-1, 1});
     glm::vec2 bottom_right = glm::vec2({1, -1});
     float tl_x = top_left.x;
@@ -31,8 +36,17 @@ TextureRenderer::TextureRenderer() {
             tl_x, tl_y, 0.0f, 0.0f, 0.0f,
             br_x, tl_y, 0.0f, 1.0f, 0.0f,
     };
-    if (!shaderProgram)
-        shaderProgram = LoadShaders(SHADOW_MAP_QUAD_V_SHADER_PATH, SHADOW_MAP_QUAD_F_SHADER_PATH);
+    this->use_depth = depth;
+    if (use_depth) {
+        vertex_shader = get_cwd() + std::string(SHADOW_MAP_QUAD_V_SHADER_PATH);
+        fragment_shader = get_cwd() + std::string(SHADOW_MAP_QUAD_F_SHADER_PATH);
+    } else {
+        vertex_shader = get_cwd() + std::string(TEXTURE_MAP_DEPTH_V_SHADER_PATH);
+        fragment_shader = get_cwd() + std::string(TEXTURE_MAP_DEPTH_F_SHADER_PATH);
+    }
+    if (!shaderProgram) {
+        shaderProgram = LoadShaders(vertex_shader.c_str(), fragment_shader.c_str());
+    }
 }
 
 void TextureRenderer::setup(StereoWindow * stereoWindow, GLFWwindow *context, bool is_left) {
@@ -69,7 +83,18 @@ void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, 
     } else {
         glBindTexture(GL_TEXTURE_2D, texture_id_right);
     }
+    if (use_depth) {
+        glActiveTexture(GL_TEXTURE1);
+        if (is_left) {
+            glBindTexture(GL_TEXTURE_2D, texture_depth_id_left);
+        } else {
+            glBindTexture(GL_TEXTURE_2D, texture_depth_id_right);
+        }
+    }
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_sampler"), 0);
+    if (use_depth) {
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_depth_sampler"), 1);
+    }
     if (is_left) {
         glBindVertexArray(VAO_left);
     } else {

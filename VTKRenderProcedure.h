@@ -18,6 +18,9 @@ public:
     void execute(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) override;
     void setup(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) override;
     void resize_callback(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) override;
+
+    GLuint colorTexture;
+    GLuint depthTexture;
 };
 
 

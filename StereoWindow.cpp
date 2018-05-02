@@ -36,7 +36,7 @@ static void resize_callback(GLFWwindow* window, int width, int height)
 }
 
 StereoWindow::StereoWindow(GLFWmonitor * monitor_left, GLFWmonitor * monitor_right) {
-    window_L = glfwCreateWindow(800, 400, "Left", monitor_left, NULL);
+    window_L = glfwCreateWindow(800, 400, "Left",  monitor_left, NULL);
     window_R = glfwCreateWindow(800, 400, "Right", monitor_right, window_L);
     resized_L = true;
     resized_R = true;
@@ -151,6 +151,12 @@ void StereoWindow::event_loop() {
 
         glfwSwapBuffers(window_L);
     }
+    glfwWindowShouldClose(window_L);
+    glfwWindowShouldClose(window_R);
+    glfwDestroyWindow(window_L);
+    glfwDestroyWindow(window_R);
+    glfwPollEvents();
+    glfwWaitEvents();
     t.join();
 }
 

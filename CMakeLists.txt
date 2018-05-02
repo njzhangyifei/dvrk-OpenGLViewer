@@ -6,6 +6,7 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/FindTBB)
 set(CMAKE_CXX_STANDARD 14)
 
 set(USE_IMGUI TRUE)
+#set(WITH_ROS TRUE)
 #set(ARCLAB TRUE)
 
 set(VTK_DIR "~/develop/opensource/VTK-build/")
@@ -89,6 +90,12 @@ if (USE_IMGUI)
             vtkExternalOpenGLRenderWindowFixed.cpp vtkExternalOpenGLRenderWindowFixed.h)
 endif()
 
+if (WITH_ROS)
+    add_definitions(-D__WITH_ROS)
+    set(ROS_INTEROP ROSStereoImageProvider.cpp ROSStereoImageProvider.h)
+endif()
+
+
 add_executable(dvrk-OpenGLViewer
         ${IMGUI_IMPL}
         main.cpp
@@ -97,10 +104,11 @@ add_executable(dvrk-OpenGLViewer
         StereoWindow.cpp StereoWindow.h
         IRenderProcedure.h
         TextureRenderer.cpp TextureRenderer.h
-        ROSStereoImageProvider.cpp ROSStereoImageProvider.h
         GLError.cpp GLError.h
         json.hpp
-        CameraTextureRenderer.cpp CameraTextureRenderer.h VTKRenderProcedure.cpp VTKRenderProcedure.h)
+        ${ROS_INTEROP}
+        CameraTextureRenderer.cpp CameraTextureRenderer.h
+        VTKRenderProcedure.cpp VTKRenderProcedure.h get_cwd.h get_cwd.cpp)
 
 file(GLOB FRAG_SHADERS "*.frag")
 file(GLOB VERT_SHADERS "*.vert")

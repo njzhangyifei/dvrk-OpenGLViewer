@@ -14,12 +14,14 @@
 #include <vtk_glew.h>
 #include <GLFW/glfw3.h>
 #include <mutex>
+#ifdef __WITH_ROS
+#include "ROSStereoImageProvider.h"
 #include <ros/init.h>
+#endif
 #include "shader.h"
 #include "ImageProvider.h"
 #include "StereoWindow.h"
 #include "TextureRenderer.h"
-#include "ROSStereoImageProvider.h"
 #include "CameraTextureRenderer.h"
 #include "VTKRenderProcedure.h"
 
@@ -39,21 +41,25 @@ int main(int argc, char * argv [])
 //    cv::imshow("test", img.image);
 //    cv::waitKey(0);
 
+#ifdef __WITH_ROS
     ros::init(argc, argv, "dvrk_OpenGLViewer");
     ros::NodeHandlePtr nh(new ros::NodeHandle());
-
     ros::AsyncSpinner spinner(2);
     spinner.start();
 
     std::unique_ptr<ROSStereoImageProvider> stereo_image_provider = std::make_unique<ROSStereoImageProvider>(nh);
+#endif
 
     // monocular image provider
     std::shared_ptr<ImageProvider> image_provider_left = std::make_shared<ImageProvider>(1920, 1080);
     std::shared_ptr<ImageProvider> image_provider_right = std::make_shared<ImageProvider>(1920, 1080);
 
+
+#ifdef __WITH_ROS
     // register to ROS stereo image
     stereo_image_provider->image_provider_left = image_provider_left;
     stereo_image_provider->image_provider_right = image_provider_right;
+#endif
 
     glfwInit();
     glfwSetErrorCallback(error_callback);

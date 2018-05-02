@@ -112,19 +112,29 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         glGenFramebuffers(1, &FramebufferName);
         glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
 
-        glGenTextures(1, &renderedTexture);
-        // "Bind" the newly created texture : all future texture functions will modify this texture
+        glGenTextures(1, &colorTexture);
         glBindTexture(GL_TEXTURE_2D, renderedTexture);
-        // Give an empty image to OpenGL ( the last "0" )
-        glTexImage2D(GL_TEXTURE_2D, 0,GL_RGB, stereoWindow->width, stereoWindow->height, 0,GL_RGB, GL_UNSIGNED_BYTE, 0);
-        // Poor filtering. Needed !
+        glTexImage2D(GL_TEXTURE_2D, 0,
+                     GL_RGBA8, stereoWindow->width, stereoWindow->height, 0,
+                     GL_RGBA, GL_UNSIGNED_BYTE, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glGenRenderbuffers(1, &depthrenderbuffer);
-        glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, stereoWindow->width, stereoWindow->height);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
+
+        glGenTextures(1, &depthTexture);
+        glBindTexture(GL_TEXTURE_2D, depthTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0,
+                     GL_DEPTH_COMPONENT24, stereoWindow->width, stereoWindow->height, 0,
+                     GL_RGB, GL_UNSIGNED_BYTE, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+//        glGenRenderbuffers(1, &depthrenderbuffer);
+//        glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
+//        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, stereoWindow->width, stereoWindow->height);
+//        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture, 0);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);
+
         // Set the list of draw buffers.
         GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
         glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
@@ -169,12 +179,17 @@ void VTKRenderProcedure::resize_callback(StereoWindow *stereoWindow, GLFWwindow 
         renderer->GetActiveCamera()->SetScreenBottomRight( 0.5, -0.5 / ratio, -0.5);
         renderer->GetActiveCamera()->SetScreenTopRight   ( 0.5,  0.5 / ratio, -0.5);
         renderer->GetActiveCamera()->UseOffAxisProjectionOn();
-        glBindTexture(GL_TEXTURE_2D, renderedTexture);
+
         // Give an empty image to OpenGL ( the last "0" )
+        glBindTexture(GL_TEXTURE_2D, colorTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA8, stereoWindow->width, stereoWindow->height, 0,
+                     GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindTexture(GL_TEXTURE_2D, depthTexture);
         glTexImage2D(GL_TEXTURE_2D, 0,GL_RGB, stereoWindow->width, stereoWindow->height, 0,GL_RGB, GL_UNSIGNED_BYTE, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
-        glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, stereoWindow->width, stereoWindow->height);
+//        glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
+//        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, stereoWindow->width, stereoWindow->height);
     }
 }
 
