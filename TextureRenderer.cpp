@@ -69,7 +69,7 @@ void TextureRenderer::load_data() {
 
 void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, bool is_left) {
     glEnable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
-    glDepthFunc(GL_GREATER);
+    glDepthFunc(GL_LEQUAL);
     glUseProgram(shaderProgram);
     glActiveTexture(GL_TEXTURE0);
     if (is_left) {
