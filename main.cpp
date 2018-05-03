@@ -62,7 +62,7 @@ int main(int argc, char * argv [])
 #endif
 
     glfwInit();
-    glfwSetErrorCallback(error_callback);
+    glfwSetErrorCallback(&error_callback);
     std::unique_ptr<StereoWindow> stereo_window = std::make_unique<StereoWindow>(nullptr, nullptr);
 
     std::shared_ptr<CameraTextureRenderer> camera_renderer = std::make_shared<CameraTextureRenderer>();
@@ -71,9 +71,9 @@ int main(int argc, char * argv [])
     stereo_window->left_procedures.push_back(camera_renderer);
     stereo_window->right_procedures.push_back(camera_renderer);
 
-    std::shared_ptr<VTKRenderProcedure> vtk_renderer = std::make_shared<VTKRenderProcedure>();
-    stereo_window->left_procedures.push_back(vtk_renderer);
-    stereo_window->right_procedures.push_back(vtk_renderer);
+//    std::shared_ptr<VTKRenderProcedure> vtk_renderer = std::make_shared<VTKRenderProcedure>();
+//    stereo_window->left_procedures.push_back(vtk_renderer);
+//    stereo_window->right_procedures.push_back(vtk_renderer);
 
 //    ImageProvider image_left(stereo_window->height, stereo_window->width,);
 
@@ -85,6 +85,7 @@ int main(int argc, char * argv [])
 
     stereo_window->event_loop();
 
+    glfwTerminate();
 //    GLFWwindow * window_L = glfwCreateWindow(400, 400, "test_l", NULL, NULL);
 //    GLFWwindow * window_R = glfwCreateWindow(400, 400, "test_r", NULL, window_L);
 //
@@ -161,79 +162,79 @@ int main(int argc, char * argv [])
 //    glfwTerminate();
 //    glDeleteProgram(shadow_map_quad_shader);
     return EXIT_SUCCESS;
-    // This creates a polygonal cylinder model with eight circumferential facets
-    // (i.e, in practice an octagonal prism).
-    vtkSmartPointer<vtkCylinderSource> cylinder =
-            vtkSmartPointer<vtkCylinderSource>::New();
-    cylinder->SetResolution(8);
-
-    // The mapper is responsible for pushing the geometry into the graphics library.
-    // It may also do color mapping, if scalars or other attributes are defined.
-    vtkSmartPointer<vtkPolyDataMapper> cylinderMapper =
-            vtkSmartPointer<vtkPolyDataMapper>::New();
-    cylinderMapper->SetInputConnection(cylinder->GetOutputPort());
-
-    // The actor is a grouping mechanism: besides the geometry (mapper), it
-    // also has a property, transformation matrix, and/or texture map.
-    // Here we set its color and rotate it around the X and Y axes.
-    vtkSmartPointer<vtkActor> cylinderActor =
-            vtkSmartPointer<vtkActor>::New();
-    cylinderActor->SetMapper(cylinderMapper);
-    cylinderActor->GetProperty()->SetColor(1.0000, 0.3882, 0.2784);
-    cylinderActor->RotateX(30.0);
-    cylinderActor->RotateY(-45.0);
-
-    vtkSmartPointer<vtkRenderer> renderer =
-            vtkSmartPointer<vtkRenderer>::New();
-    renderer->AddActor(cylinderActor);
-    renderer->SetBackground(0.1, 0.2, 0.4);
-    // Zoom in a little by accessing the camera and invoking its "Zoom" method.
-    renderer->ResetCamera();
-    renderer->GetActiveCamera()->UseOffAxisProjectionOn();
-    renderer->GetActiveCamera()->Zoom(1.5);
-
-    // The render window is the actual GUI window
-    // that appears on the computer screen
-    vtkSmartPointer<vtkRenderWindow> renderWindow =
-            vtkSmartPointer<vtkRenderWindow>::New();
-    renderWindow->SetSize(200, 200);
-    renderWindow->AddRenderer(renderer);
-
-    vtkSmartPointer<vtkRenderer> renderer_R =
-        vtkSmartPointer<vtkRenderer>::New();
-    renderer_R->AddActor(cylinderActor);
-    renderer_R->SetBackground(0.1, 0.2, 0.4);
-    renderer_R->SetActiveCamera(renderer->GetActiveCamera());
-
-    // The render window is the actual GUI window
-    // that appears on the computer screen
-    vtkSmartPointer<vtkRenderWindow> renderWindow_R =
-            vtkSmartPointer<vtkRenderWindow>::New();
-    renderWindow_R->SetSize(200, 200);
-    renderWindow_R->AddRenderer(renderer_R);
-
-    renderWindow->StereoCapableWindowOn();
-    renderWindow->SetStereoTypeToLeft();
-    renderWindow->StereoRenderOn();
-
-    renderWindow_R->StereoCapableWindowOn();
-    renderWindow_R->SetStereoTypeToRight();
-    renderWindow_R->StereoRenderOn();
-
-    // The render window interactor captures mouse events
-    // and will perform appropriate camera or actor manipulation
-    // depending on the nature of the events.
-    vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
-            vtkSmartPointer<vtkRenderWindowInteractor>::New();
-    renderWindowInteractor->SetRenderWindow(renderWindow);
-
-     vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor_R =
-            vtkSmartPointer<vtkRenderWindowInteractor>::New();
-    renderWindowInteractor_R->SetRenderWindow(renderWindow_R);
-
-    // This starts the event loop and as a side effect causes an initial render.
-//    renderWindow_R->Render();
-    renderWindowInteractor->Start();
-
-    return EXIT_SUCCESS;
+//    // This creates a polygonal cylinder model with eight circumferential facets
+//    // (i.e, in practice an octagonal prism).
+//    vtkSmartPointer<vtkCylinderSource> cylinder =
+//            vtkSmartPointer<vtkCylinderSource>::New();
+//    cylinder->SetResolution(8);
+//
+//    // The mapper is responsible for pushing the geometry into the graphics library.
+//    // It may also do color mapping, if scalars or other attributes are defined.
+//    vtkSmartPointer<vtkPolyDataMapper> cylinderMapper =
+//            vtkSmartPointer<vtkPolyDataMapper>::New();
+//    cylinderMapper->SetInputConnection(cylinder->GetOutputPort());
+//
+//    // The actor is a grouping mechanism: besides the geometry (mapper), it
+//    // also has a property, transformation matrix, and/or texture map.
+//    // Here we set its color and rotate it around the X and Y axes.
+//    vtkSmartPointer<vtkActor> cylinderActor =
+//            vtkSmartPointer<vtkActor>::New();
+//    cylinderActor->SetMapper(cylinderMapper);
+//    cylinderActor->GetProperty()->SetColor(1.0000, 0.3882, 0.2784);
+//    cylinderActor->RotateX(30.0);
+//    cylinderActor->RotateY(-45.0);
+//
+//    vtkSmartPointer<vtkRenderer> renderer =
+//            vtkSmartPointer<vtkRenderer>::New();
+//    renderer->AddActor(cylinderActor);
+//    renderer->SetBackground(0.1, 0.2, 0.4);
+//    // Zoom in a little by accessing the camera and invoking its "Zoom" method.
+//    renderer->ResetCamera();
+//    renderer->GetActiveCamera()->UseOffAxisProjectionOn();
+//    renderer->GetActiveCamera()->Zoom(1.5);
+//
+//    // The render window is the actual GUI window
+//    // that appears on the computer screen
+//    vtkSmartPointer<vtkRenderWindow> renderWindow =
+//            vtkSmartPointer<vtkRenderWindow>::New();
+//    renderWindow->SetSize(200, 200);
+//    renderWindow->AddRenderer(renderer);
+//
+//    vtkSmartPointer<vtkRenderer> renderer_R =
+//        vtkSmartPointer<vtkRenderer>::New();
+//    renderer_R->AddActor(cylinderActor);
+//    renderer_R->SetBackground(0.1, 0.2, 0.4);
+//    renderer_R->SetActiveCamera(renderer->GetActiveCamera());
+//
+//    // The render window is the actual GUI window
+//    // that appears on the computer screen
+//    vtkSmartPointer<vtkRenderWindow> renderWindow_R =
+//            vtkSmartPointer<vtkRenderWindow>::New();
+//    renderWindow_R->SetSize(200, 200);
+//    renderWindow_R->AddRenderer(renderer_R);
+//
+//    renderWindow->StereoCapableWindowOn();
+//    renderWindow->SetStereoTypeToLeft();
+//    renderWindow->StereoRenderOn();
+//
+//    renderWindow_R->StereoCapableWindowOn();
+//    renderWindow_R->SetStereoTypeToRight();
+//    renderWindow_R->StereoRenderOn();
+//
+//    // The render window interactor captures mouse events
+//    // and will perform appropriate camera or actor manipulation
+//    // depending on the nature of the events.
+//    vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
+//            vtkSmartPointer<vtkRenderWindowInteractor>::New();
+//    renderWindowInteractor->SetRenderWindow(renderWindow);
+//
+//     vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor_R =
+//            vtkSmartPointer<vtkRenderWindowInteractor>::New();
+//    renderWindowInteractor_R->SetRenderWindow(renderWindow_R);
+//
+//    // This starts the event loop and as a side effect causes an initial render.
+////    renderWindow_R->Render();
+//    renderWindowInteractor->Start();
+//
+//    return EXIT_SUCCESS;
 }

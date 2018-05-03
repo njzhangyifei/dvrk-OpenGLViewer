@@ -14,9 +14,6 @@
 #include <glm/glm.hpp>
 #include <iostream>
 
-#define SHADOW_MAP_QUAD_V_SHADER_PATH "./debug_shadow_map.vert"
-#define SHADOW_MAP_QUAD_F_SHADER_PATH "./debug_shadow_map.frag"
-
 #define TEXTURE_MAP_DEPTH_V_SHADER_PATH "./texture_map_depth.vert"
 #define TEXTURE_MAP_DEPTH_F_SHADER_PATH "./texture_map_depth.frag"
 
@@ -31,19 +28,14 @@ TextureRenderer::TextureRenderer(bool depth) {
     float br_y = bottom_right.y;
     quadVertices = new GLfloat[20]{
             // positions        // texture Coords
-            tl_x, br_y, 0.0f, 0.0f, 1.0f,
-            br_x, br_y, 0.0f, 1.0f, 1.0f,
-            tl_x, tl_y, 0.0f, 0.0f, 0.0f,
-            br_x, tl_y, 0.0f, 1.0f, 0.0f,
+            tl_x, br_y, 1.0f, 0.0f, 1.0f,
+            br_x, br_y, 1.0f, 1.0f, 1.0f,
+            tl_x, tl_y, 1.0f, 0.0f, 0.0f,
+            br_x, tl_y, 1.0f, 1.0f, 0.0f,
     };
     this->use_depth = depth;
-    if (use_depth) {
-        vertex_shader = get_cwd() + std::string(SHADOW_MAP_QUAD_V_SHADER_PATH);
-        fragment_shader = get_cwd() + std::string(SHADOW_MAP_QUAD_F_SHADER_PATH);
-    } else {
-        vertex_shader = get_cwd() + std::string(TEXTURE_MAP_DEPTH_V_SHADER_PATH);
-        fragment_shader = get_cwd() + std::string(TEXTURE_MAP_DEPTH_F_SHADER_PATH);
-    }
+    vertex_shader = get_cwd() + std::string(TEXTURE_MAP_DEPTH_V_SHADER_PATH);
+    fragment_shader = get_cwd() + std::string(TEXTURE_MAP_DEPTH_F_SHADER_PATH);
     if (!shaderProgram) {
         shaderProgram = LoadShaders(vertex_shader.c_str(), fragment_shader.c_str());
     }
@@ -76,6 +68,8 @@ void TextureRenderer::load_data() {
 }
 
 void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, bool is_left) {
+    glEnable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
+    glDepthFunc(GL_GREATER);
     glUseProgram(shaderProgram);
     glActiveTexture(GL_TEXTURE0);
     if (is_left) {
@@ -91,7 +85,8 @@ void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, 
             glBindTexture(GL_TEXTURE_2D, texture_depth_id_right);
         }
     }
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture_sampler"), 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "use_depth"), (this->use_depth) ? 1 : 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_color_sampler"), 0);
     if (use_depth) {
         glUniform1i(glGetUniformLocation(shaderProgram, "texture_depth_sampler"), 1);
     }
@@ -101,15 +96,16 @@ void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, 
         glBindVertexArray(VAO_right);
     }
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glDisable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
     glBindVertexArray(0);
-    glClear(GL_DEPTH_BUFFER_BIT);
 }
 
 void TextureRenderer::teardown(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) {
     if (is_left) {
-        glDeleteProgram(shaderProgram);
-        shaderProgram = 0;
-        glDeleteBuffers(1, &VBO);
+        if (shaderProgram){
+            glDeleteProgram(shaderProgram);
+            shaderProgram = 0;
+        }
     }
 
     if (is_left) {

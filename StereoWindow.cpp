@@ -107,7 +107,7 @@ void StereoWindow::event_loop() {
             if (resized_R){
                 glViewport(0, 0, width, height);
                 for (int i = 0; i < right_procedures.size(); ++i) {
-                    right_procedures[i]->resize_callback(this, window_L, true);
+                    right_procedures[i]->resize_callback(this, window_R, true);
                 }
                 resized_R = false;
             }
@@ -151,13 +151,13 @@ void StereoWindow::event_loop() {
 
         glfwSwapBuffers(window_L);
     }
-    glfwWindowShouldClose(window_L);
-    glfwWindowShouldClose(window_R);
-    glfwDestroyWindow(window_L);
-    glfwDestroyWindow(window_R);
+    glfwMakeContextCurrent(NULL);
+    glfwSetWindowShouldClose(window_R, true);
+    glfwSetWindowShouldClose(window_L, true);
     glfwPollEvents();
-    glfwWaitEvents();
     t.join();
+    glfwDestroyWindow(window_R);
+    glfwDestroyWindow(window_L);
 }
 
 

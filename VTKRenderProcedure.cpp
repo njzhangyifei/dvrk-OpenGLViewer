@@ -24,9 +24,6 @@ VTKRenderProcedure::VTKRenderProcedure(){
 }
 
 GLuint FramebufferName = 0;
-GLuint renderedTexture;
-GLuint depthrenderbuffer;
-
 vtkSmartPointer<vtkPolyDataMapper> mapper;
 vtkSmartPointer<vtkRenderer> renderer;
 vtkSmartPointer<vtkActor> actor;
@@ -98,12 +95,13 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         collection->InitTraversal();
         for(vtkIdType i = 0; i < collection->GetNumberOfItems(); i++)
         {
-            vtkActor::SafeDownCast(collection->GetNextProp())->GetProperty()->SetOpacity(0.5);
+//            vtkActor::SafeDownCast(collection->GetNextProp())->GetProperty()->SetOpacity(0.5);
         }
 
         //Create a renderer, render window, and interactor
         vtkWin->AddRenderer(renderer);
-        renderer->EraseOn();
+        renderer->SetPreserveDepthBuffer(1);
+//        renderer->EraseOn();
         renderer->AddActor(assembly);
         renderer->AddActor(actor);
         renderer->ResetCamera();
@@ -113,7 +111,7 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
 
         glGenTextures(1, &colorTexture);
-        glBindTexture(GL_TEXTURE_2D, renderedTexture);
+        glBindTexture(GL_TEXTURE_2D, colorTexture);
         glTexImage2D(GL_TEXTURE_2D, 0,
                      GL_RGBA8, stereoWindow->width, stereoWindow->height, 0,
                      GL_RGBA, GL_UNSIGNED_BYTE, 0);
@@ -123,8 +121,8 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         glGenTextures(1, &depthTexture);
         glBindTexture(GL_TEXTURE_2D, depthTexture);
         glTexImage2D(GL_TEXTURE_2D, 0,
-                     GL_DEPTH_COMPONENT24, stereoWindow->width, stereoWindow->height, 0,
-                     GL_RGB, GL_UNSIGNED_BYTE, 0);
+                     GL_DEPTH_COMPONENT16, stereoWindow->width, stereoWindow->height, 0,
+                     GL_DEPTH_COMPONENT, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
@@ -142,9 +140,10 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         // Always check that our framebuffer is ok
         if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
             std::cerr << "ERROR configuring" << std::endl;
+
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        texture_renderer = std::make_unique<TextureRenderer>();
+        texture_renderer = std::make_unique<TextureRenderer>(true);
         texture_renderer->setup(stereoWindow, context, is_left);
     } else {
     }
@@ -157,12 +156,21 @@ void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context
 
         glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
         glViewport(0, 0, stereoWindow->width, stereoWindow->height);
-//        glClearColor(0,1,0,0.5);
-//        glClear(GL_COLOR_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
+        glDepthFunc(GL_ALWAYS);
+        glClearDepth(0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         vtkWin->Render();
+        glDisable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        texture_renderer->texture_id_left = renderedTexture;
+
+        texture_renderer->texture_id_left = colorTexture;
+        texture_renderer->texture_depth_id_left = depthTexture;
+
+        glEnable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
+        glDepthFunc(GL_ALWAYS);
         texture_renderer->execute(stereoWindow, context, is_left);
+        glDisable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
     }
 }
 
@@ -182,12 +190,17 @@ void VTKRenderProcedure::resize_callback(StereoWindow *stereoWindow, GLFWwindow 
 
         // Give an empty image to OpenGL ( the last "0" )
         glBindTexture(GL_TEXTURE_2D, colorTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA8, stereoWindow->width, stereoWindow->height, 0,
+        glTexImage2D(GL_TEXTURE_2D, 0,
+                     GL_RGBA8, stereoWindow->width, stereoWindow->height, 0,
                      GL_RGBA, GL_UNSIGNED_BYTE, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
+
         glBindTexture(GL_TEXTURE_2D, depthTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0,GL_RGB, stereoWindow->width, stereoWindow->height, 0,GL_RGB, GL_UNSIGNED_BYTE, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0,
+                     GL_DEPTH_COMPONENT16, stereoWindow->width, stereoWindow->height, 0,
+                     GL_DEPTH_COMPONENT, GL_FLOAT, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
+
 //        glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
 //        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, stereoWindow->width, stereoWindow->height);
     }
