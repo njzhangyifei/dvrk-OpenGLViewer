@@ -14,8 +14,8 @@
 #include <glm/glm.hpp>
 #include <iostream>
 
-#define TEXTURE_MAP_DEPTH_V_SHADER_PATH "./texture_map_depth.vert"
-#define TEXTURE_MAP_DEPTH_F_SHADER_PATH "./texture_map_depth.frag"
+#define TEXTURE_MAP_DEPTH_V_SHADER_PATH "/texture_map_depth.vert"
+#define TEXTURE_MAP_DEPTH_F_SHADER_PATH "/texture_map_depth.frag"
 
 GLuint TextureRenderer::shaderProgram = 0;
 
@@ -68,9 +68,8 @@ void TextureRenderer::load_data() {
 }
 
 void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, bool is_left) {
-    glEnable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
-    glDepthFunc(GL_LEQUAL);
     glUseProgram(shaderProgram);
+    glEnable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
     glActiveTexture(GL_TEXTURE0);
     if (is_left) {
         glBindTexture(GL_TEXTURE_2D, texture_id_left);
@@ -84,6 +83,8 @@ void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, 
         } else {
             glBindTexture(GL_TEXTURE_2D, texture_depth_id_right);
         }
+    } else {
+        glDepthFunc(GL_ALWAYS);
     }
     glUniform1i(glGetUniformLocation(shaderProgram, "use_depth"), (this->use_depth) ? 1 : 0);
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_color_sampler"), 0);

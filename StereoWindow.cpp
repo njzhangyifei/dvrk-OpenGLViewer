@@ -38,6 +38,10 @@ static void resize_callback(GLFWwindow* window, int width, int height)
 StereoWindow::StereoWindow(GLFWmonitor * monitor_left, GLFWmonitor * monitor_right) {
     window_L = glfwCreateWindow(800, 400, "Left",  monitor_left, NULL);
     window_R = glfwCreateWindow(800, 400, "Right", monitor_right, window_L);
+    if (!monitor_left) {
+        glfwSetWindowPos(window_L, 0, 0);
+        glfwSetWindowPos(window_R, 0, 450);
+    }
     resized_L = true;
     resized_R = true;
     glfwSetWindowUserPointer(window_L, this);
