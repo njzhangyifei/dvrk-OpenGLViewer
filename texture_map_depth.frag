@@ -19,7 +19,6 @@ void main()
         gl_FragDepth = texture_depth;
 //        gl_FragDepth = texture_depth;
 //        gl_FragDepth = 0.1;
-
 //        color = vec4(gl_FragDepth, gl_FragDepth, gl_FragDepth, 1.0);
     } else {
         gl_FragDepth = gl_FragCoord.z;

@@ -19,6 +19,10 @@ public:
     void setup(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) override;
     void resize_callback(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) override;
 
+    GLuint FramebufferName = 0;
+    vtkSmartPointer<vtkPolyDataMapper> mapper;
+    vtkSmartPointer<vtkRenderer> renderer;
+    vtkSmartPointer<vtkActor> actor;
     GLuint colorTexture;
     GLuint depthTexture;
 };
