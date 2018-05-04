@@ -2,7 +2,7 @@
 
 in vec4 gl_FragCoord;
 in vec2 TexCoords;
-out vec4 color;
+out vec4 gl_FragColor;
 
 out float gl_FragDepth;
 
@@ -13,7 +13,7 @@ uniform bool use_depth;
 
 void main()
 {
-    color = texture(texture_color_sampler, TexCoords).rgba;
+    gl_FragColor = texture(texture_color_sampler, TexCoords).rgba;
     if (use_depth) {
         float texture_depth = texture(texture_depth_sampler, TexCoords).x;
         gl_FragDepth = texture_depth;

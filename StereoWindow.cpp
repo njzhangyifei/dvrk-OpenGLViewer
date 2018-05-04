@@ -55,12 +55,12 @@ StereoWindow::StereoWindow(GLFWmonitor * monitor_left, GLFWmonitor * monitor_rig
     glfwMakeContextCurrent(window_L);
     glfwSetWindowSizeCallback(window_L, &resize_callback);
     resize_callback(window_L, width, height);
-    glfwSwapInterval(1);
+    glfwSwapInterval(0);
 
     glfwMakeContextCurrent(window_R);
     glfwSetWindowSizeCallback(window_R, &resize_callback);
     resize_callback(window_R, width, height);
-    glfwSwapInterval(1);
+    glfwSwapInterval(0);
 }
 
 void StereoWindow::render_left() {
@@ -77,6 +77,7 @@ void StereoWindow::render_left() {
 //            std::cerr << "time: "
 //                      << std::chrono::duration_cast<std::chrono::milliseconds>(now_ - now).count()
 //                      << std::endl;
+    glClearColor(1, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (int i = 0; i < left_procedures.size(); ++i) {
         left_procedures[i]->execute(this, window_L,  true);
@@ -84,6 +85,7 @@ void StereoWindow::render_left() {
 }
 
 void StereoWindow::render_right() {
+    glClearColor(0, 0, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (int i = 0; i < right_procedures.size(); ++i) {
         right_procedures[i]->execute(this, window_R,  false);
@@ -111,7 +113,7 @@ void StereoWindow::event_loop() {
             if (resized_R){
                 glViewport(0, 0, width, height);
                 for (int i = 0; i < right_procedures.size(); ++i) {
-                    right_procedures[i]->resize_callback(this, window_R, true);
+                    right_procedures[i]->resize_callback(this, window_R, false);
                 }
                 resized_R = false;
             }
@@ -152,7 +154,6 @@ void StereoWindow::event_loop() {
         ImGui::Render();
 #endif
         gl_lock.unlock();
-
         glfwSwapBuffers(window_L);
     }
     glfwMakeContextCurrent(NULL);

@@ -68,16 +68,12 @@ int main(int argc, char * argv [])
     std::shared_ptr<CameraTextureRenderer> camera_renderer = std::make_shared<CameraTextureRenderer>();
     camera_renderer->image_provider_left = image_provider_left;
     camera_renderer->image_provider_right = image_provider_right;
-    stereo_window->left_procedures.push_back(camera_renderer);
-    stereo_window->right_procedures.push_back(camera_renderer);
+//    stereo_window->left_procedures.push_back(camera_renderer);
+//    stereo_window->right_procedures.push_back(camera_renderer);
 
     std::shared_ptr<VTKRenderProcedure> vtk_renderer = std::make_shared<VTKRenderProcedure>();
     stereo_window->left_procedures.push_back(vtk_renderer);
     stereo_window->right_procedures.push_back(vtk_renderer);
-
-    std::shared_ptr<VTKRenderProcedure> vtk_renderer2 = std::make_shared<VTKRenderProcedure>();
-    stereo_window->left_procedures.push_back(vtk_renderer2);
-    stereo_window->right_procedures.push_back(vtk_renderer2);
 
 //    ImageProvider image_left(stereo_window->height, stereo_window->width,);
 

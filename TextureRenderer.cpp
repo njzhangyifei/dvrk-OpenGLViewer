@@ -52,7 +52,6 @@ void TextureRenderer::setup(StereoWindow * stereoWindow, GLFWwindow *context, bo
 
     if (is_left) {
         glGenBuffers(1, &VBO);
-        load_data();
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -60,6 +59,10 @@ void TextureRenderer::setup(StereoWindow * stereoWindow, GLFWwindow *context, bo
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void *) 0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void *) (3 * sizeof(float)));
+
+    if (is_left) {
+        load_data();
+    }
 }
 
 void TextureRenderer::load_data() {
@@ -68,8 +71,8 @@ void TextureRenderer::load_data() {
 }
 
 void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, bool is_left) {
-    glUseProgram(shaderProgram);
     glEnable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
+    glUseProgram(shaderProgram);
     glActiveTexture(GL_TEXTURE0);
     if (is_left) {
         glBindTexture(GL_TEXTURE_2D, texture_id_left);
@@ -84,7 +87,7 @@ void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, 
             glBindTexture(GL_TEXTURE_2D, texture_depth_id_right);
         }
     } else {
-        glDepthFunc(GL_ALWAYS);
+        glDepthFunc(GL_LEQUAL);
     }
     glUniform1i(glGetUniformLocation(shaderProgram, "use_depth"), (this->use_depth) ? 1 : 0);
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_color_sampler"), 0);
@@ -97,8 +100,16 @@ void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, 
         glBindVertexArray(VAO_right);
     }
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    if (use_depth) {
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+    glActiveTexture(GL_TEXTURE0);
     glDisable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
     glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 void TextureRenderer::teardown(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) {
