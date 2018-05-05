@@ -29,8 +29,8 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
     //Create a mapper and actor
     if (is_left) {
         glActiveTexture(GL_TEXTURE0);
-        glGenTextures(1, &colorTexture);
-        glBindTexture(GL_TEXTURE_2D, colorTexture);
+        glGenTextures(1, &colorTexture_L);
+        glBindTexture(GL_TEXTURE_2D, colorTexture_L);
         glTexImage2D(GL_TEXTURE_2D, 0,
                      GL_RGBA8, stereoWindow->width, stereoWindow->height, 0,
                      GL_RGBA, GL_UNSIGNED_BYTE, 0);
@@ -38,8 +38,28 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        glGenTextures(1, &depthTexture);
-        glBindTexture(GL_TEXTURE_2D, depthTexture);
+        glGenTextures(1, &depthTexture_L);
+        glBindTexture(GL_TEXTURE_2D, depthTexture_L);
+        glTexImage2D(GL_TEXTURE_2D, 0,
+                     GL_DEPTH_COMPONENT24, stereoWindow->width, stereoWindow->height, 0,
+                     GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        glGenTextures(1, &colorTexture_R);
+        glBindTexture(GL_TEXTURE_2D, colorTexture_R);
+        glTexImage2D(GL_TEXTURE_2D, 0,
+                     GL_RGBA8, stereoWindow->width, stereoWindow->height, 0,
+                     GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        glGenTextures(1, &depthTexture_R);
+        glBindTexture(GL_TEXTURE_2D, depthTexture_R);
         glTexImage2D(GL_TEXTURE_2D, 0,
                      GL_DEPTH_COMPONENT24, stereoWindow->width, stereoWindow->height, 0,
                      GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, 0);
@@ -52,8 +72,8 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         glGenFramebuffers(1, &FramebufferName);
         glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
 
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture, 0);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture_L, 0);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_L, 0);
 
         // Set the list of draw buffers.
         GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
@@ -128,7 +148,7 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         collection->InitTraversal();
         for(vtkIdType i = 0; i < collection->GetNumberOfItems(); i++)
         {
-//            vtkActor::SafeDownCast(collection->GetNextProp())->GetProperty()->SetOpacity(0.1);
+            vtkActor::SafeDownCast(collection->GetNextProp())->GetProperty()->SetOpacity(0.5);
         }
 
         //Create a renderer, render window, and interactor
@@ -152,32 +172,29 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
 void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) {
     if (is_left) {
         glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture_L, 0);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_L, 0);
         vtkWin->SetStereoTypeToLeft();
-        glViewport(0, 0, stereoWindow->width, stereoWindow->height);
-//        std::cerr << vtkWin->GetDefaultFrameBufferId() << std:: endl;
-//        glEnable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
-//        glDepthFunc(GL_LEQUAL);
-//        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
         vtkWin->Render();
-//        glDisable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
+
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture_R, 0);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_R, 0);
+        vtkWin->SetStereoTypeToRight();
+        vtkWin->Render();
+
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    } else {
     }
-
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    texture_renderer->texture_id_left = colorTexture;
-    texture_renderer->texture_depth_id_left = depthTexture;
-    texture_renderer->texture_id_right = colorTexture;
-    texture_renderer->texture_depth_id_right = depthTexture;
+    texture_renderer->texture_id_left = colorTexture_L;
+    texture_renderer->texture_depth_id_left = depthTexture_L;
+    texture_renderer->texture_id_right = colorTexture_R;
+    texture_renderer->texture_depth_id_right = depthTexture_R;
 
-    glEnable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
-    glDepthFunc(GL_ALWAYS);
-//        glEnable(GL_BLEND);
-//        glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
-//        glBlendEquation(GL_FUNC_ADD);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
     texture_renderer->execute(stereoWindow, context, is_left);
-//        glDisable(GL_BLEND);
-    glDisable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
+    glDisable(GL_BLEND);
 }
 
 void VTKRenderProcedure::resize_callback(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) {
@@ -196,13 +213,25 @@ void VTKRenderProcedure::resize_callback(StereoWindow *stereoWindow, GLFWwindow 
 
         // Give an empty image to OpenGL ( the last "0" )
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, colorTexture);
+        glBindTexture(GL_TEXTURE_2D, colorTexture_L);
         glTexImage2D(GL_TEXTURE_2D, 0,
                      GL_RGBA8, stereoWindow->width, stereoWindow->height, 0,
                      GL_RGBA, GL_UNSIGNED_BYTE, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        glBindTexture(GL_TEXTURE_2D, depthTexture);
+        glBindTexture(GL_TEXTURE_2D, colorTexture_R);
+        glTexImage2D(GL_TEXTURE_2D, 0,
+                     GL_RGBA8, stereoWindow->width, stereoWindow->height, 0,
+                     GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        glBindTexture(GL_TEXTURE_2D, depthTexture_L);
+        glTexImage2D(GL_TEXTURE_2D, 0,
+                     GL_DEPTH_COMPONENT24, stereoWindow->width, stereoWindow->height, 0,
+                     GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        glBindTexture(GL_TEXTURE_2D, depthTexture_R);
         glTexImage2D(GL_TEXTURE_2D, 0,
                      GL_DEPTH_COMPONENT24, stereoWindow->width, stereoWindow->height, 0,
                      GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, 0);

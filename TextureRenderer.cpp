@@ -31,10 +31,10 @@ TextureRenderer::TextureRenderer(bool depth) {
     float br_y = bottom_right.y;
     quadVertices = new GLfloat[20]{
             // positions        // texture Coords
-            tl_x, br_y, 0.6f, 0.0f, 1.0f,
-            br_x, br_y, 0.6f, 1.0f, 1.0f,
-            tl_x, tl_y, 0.6f, 0.0f, 0.0f,
-            br_x, tl_y, 0.6f, 1.0f, 0.0f,
+            tl_x, br_y, 1.0f, 0.0f, 1.0f,
+            br_x, br_y, 1.0f, 1.0f, 1.0f,
+            tl_x, tl_y, 1.0f, 0.0f, 0.0f,
+            br_x, tl_y, 1.0f, 1.0f, 0.0f,
     };
     this->use_depth = depth;
     vertex_shader = get_cwd() + std::string(TEXTURE_MAP_DEPTH_V_SHADER_PATH);
@@ -76,7 +76,7 @@ void TextureRenderer::load_data() {
 void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, bool is_left) {
     glEnable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
     if (use_depth) {
-        glDepthFunc(GL_ALWAYS);
+        glDepthFunc(GL_LEQUAL);
     } else {
         glDepthFunc(GL_ALWAYS);
     }

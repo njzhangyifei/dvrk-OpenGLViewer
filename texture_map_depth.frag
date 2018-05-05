@@ -13,6 +13,9 @@ uniform bool use_depth;
 void main()
 {
     vec4 tex_color = texture(texture_color_sampler, TexCoords).rgba;
+    if (tex_color.a < 0.01) {
+        discard;
+    }
     float frag_z = gl_FragCoord.z;
     if (use_depth) {
         float texture_depth = texture(texture_depth_sampler, TexCoords).x;

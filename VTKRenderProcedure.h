@@ -23,8 +23,10 @@ public:
     vtkSmartPointer<vtkPolyDataMapper> mapper;
     vtkSmartPointer<vtkRenderer> renderer;
     vtkSmartPointer<vtkActor> actor;
-    GLuint colorTexture;
-    GLuint depthTexture;
+    GLuint colorTexture_L;
+    GLuint colorTexture_R;
+    GLuint depthTexture_L;
+    GLuint depthTexture_R;
 };
 
 

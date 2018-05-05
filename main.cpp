@@ -94,9 +94,9 @@ int main(int argc, char * argv [])
     stereo_window->left_procedures.push_back(camera_renderer);
     stereo_window->right_procedures.push_back(camera_renderer);
 
-//    std::shared_ptr<VTKRenderProcedure> vtk_renderer = std::make_shared<VTKRenderProcedure>();
-//    stereo_window->left_procedures.push_back(vtk_renderer);
-//    stereo_window->right_procedures.push_back(vtk_renderer);
+    std::shared_ptr<VTKRenderProcedure> vtk_renderer = std::make_shared<VTKRenderProcedure>();
+    stereo_window->left_procedures.push_back(vtk_renderer);
+    stereo_window->right_procedures.push_back(vtk_renderer);
 
 //    ImageProvider image_left(stereo_window->height, stereo_window->width,);
 
