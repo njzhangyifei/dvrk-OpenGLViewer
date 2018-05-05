@@ -36,8 +36,18 @@ static void resize_callback(GLFWwindow* window, int width, int height)
 }
 
 StereoWindow::StereoWindow(GLFWmonitor * monitor_left, GLFWmonitor * monitor_right) {
+    glfwWindowHint(GLFW_FOCUSED, false);
+    glfwWindowHint(GLFW_CONTEXT_RELEASE_BEHAVIOR, GLFW_RELEASE_BEHAVIOR_FLUSH);
+#ifdef __ARCLAB
+    glfwWindowHint(GLFW_AUTO_ICONIFY, false);
+    const GLFWvidmode* mode_left = glfwGetVideoMode(monitor_left);
+    const GLFWvidmode* mode_right = glfwGetVideoMode(monitor_left);
+    window_L = glfwCreateWindow(mode_left->width, mode_left->height, "Left",  monitor_left, NULL);
+    window_R = glfwCreateWindow(mode_left->width, mode_right->height, "Right", monitor_right, window_L);
+#else
     window_L = glfwCreateWindow(800, 400, "Left",  monitor_left, NULL);
     window_R = glfwCreateWindow(800, 400, "Right", monitor_right, window_L);
+#endif
     if (!monitor_left) {
         glfwSetWindowPos(window_L, 0, 0);
         glfwSetWindowPos(window_R, 0, 450);
@@ -64,20 +74,7 @@ StereoWindow::StereoWindow(GLFWmonitor * monitor_left, GLFWmonitor * monitor_rig
 }
 
 void StereoWindow::render_left() {
-//            static int i = 0;
-//            std::cerr << "uploading" << std::endl;
-//            img_l.image = cv::Mat(img_l.height, img_l.width, CV_8UC3, {0,0,0});
-//            cv::putText(img_l.image, std::to_string((i++)%100),
-//                        {10, height/2},
-//                        cv::FONT_HERSHEY_SIMPLEX, 2, {0,255,0}, 2, cv::LINE_AA);
-//            auto now = std::chrono::high_resolution_clock::now();
-//            img_l.upload();
-//            img_r.upload();
-//            auto now_ = std::chrono::high_resolution_clock::now();
-//            std::cerr << "time: "
-//                      << std::chrono::duration_cast<std::chrono::milliseconds>(now_ - now).count()
-//                      << std::endl;
-    glClearColor(1, 0, 0, 1);
+//    glClearColor(1, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (int i = 0; i < left_procedures.size(); ++i) {
         left_procedures[i]->execute(this, window_L,  true);
@@ -85,7 +82,7 @@ void StereoWindow::render_left() {
 }
 
 void StereoWindow::render_right() {
-    glClearColor(0, 0, 1, 1);
+//    glClearColor(0, 0, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (int i = 0; i < right_procedures.size(); ++i) {
         right_procedures[i]->execute(this, window_R,  false);

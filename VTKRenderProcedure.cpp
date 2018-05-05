@@ -24,14 +24,10 @@ VTKRenderProcedure::VTKRenderProcedure(){
 }
 
 
-int test = 0;
 std::unique_ptr<TextureRenderer> texture_renderer;
 void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) {
     //Create a mapper and actor
     if (is_left) {
-        glEnable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
-        glDepthFunc(GL_LEQUAL);
-
         glActiveTexture(GL_TEXTURE0);
         glGenTextures(1, &colorTexture);
         glBindTexture(GL_TEXTURE_2D, colorTexture);
@@ -69,8 +65,8 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
 
         vtkWin = vtkSmartPointer<vtkExternalOpenGLRenderWindowFixed>::New();
         vtkWin->Start();
-        vtkWin->DoubleBufferOff();
-        vtkWin->SwapBuffersOff();
+//        vtkWin->DoubleBufferOff();
+//        vtkWin->SwapBuffersOff();
         vtkWin->StereoCapableWindowOn();
         vtkWin->SetStereoTypeToLeft();
         vtkWin->StereoRenderOn();
@@ -138,6 +134,8 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         //Create a renderer, render window, and interactor
         renderer->UseDepthPeelingOff();
         renderer->EraseOn();
+        renderer->SetBackgroundAlpha(0.0);
+        renderer->SetBackground(0.275, 0.510, 0.706);
         renderer->AddActor(assembly);
         renderer->AddActor(actor);
         renderer->ResetCamera();
@@ -145,13 +143,9 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
 
         vtkWin->AddRenderer(renderer);
 
-        glDisable(GL_DEPTH_TEST);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         texture_renderer = std::make_unique<TextureRenderer>(true);
-    } else {
-        test -=20;
     }
-    renderer->GetActiveCamera()->Azimuth(test);
     texture_renderer->setup(stereoWindow, context, is_left);
 }
 
@@ -167,41 +161,23 @@ void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context
         vtkWin->Render();
 //        glDisable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    } else {
+    }
 
-        texture_renderer->texture_id_left = colorTexture;
-        texture_renderer->texture_depth_id_left = depthTexture;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    texture_renderer->texture_id_left = colorTexture;
+    texture_renderer->texture_depth_id_left = depthTexture;
+    texture_renderer->texture_id_right = colorTexture;
+    texture_renderer->texture_depth_id_right = depthTexture;
 
-        glEnable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
-        glDepthFunc(GL_LEQUAL);
+    glEnable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
+    glDepthFunc(GL_ALWAYS);
 //        glEnable(GL_BLEND);
 //        glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
 //        glBlendEquation(GL_FUNC_ADD);
-        texture_renderer->execute(stereoWindow, context, is_left);
+    texture_renderer->execute(stereoWindow, context, is_left);
 //        glDisable(GL_BLEND);
-        glDisable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
-//
-//        glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
-//        vtkWin->SetStereoTypeToRight();
-//        glViewport(0, 0, stereoWindow->width, stereoWindow->height);
-//        glEnable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
-//        glDepthFunc(GL_LEQUAL);
-//        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-//        vtkWin->Render();
-//        glDisable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
-//        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    } else {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        texture_renderer->texture_id_right = colorTexture;
-        texture_renderer->texture_depth_id_right = depthTexture;
-        glEnable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
-        glDepthFunc(GL_LEQUAL);
-//        glEnable(GL_BLEND);
-//        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//        glBlendEquation(GL_FUNC_ADD);
-        texture_renderer->execute(stereoWindow, context, is_left);
-//        glDisable(GL_BLEND);
-        glDisable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
-    }
+    glDisable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
 }
 
 void VTKRenderProcedure::resize_callback(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) {

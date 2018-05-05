@@ -24,7 +24,8 @@ protected:
     void load_data();
 
 public:
-    TextureRenderer(bool depth=false);
+    TextureRenderer(bool depth);
+    TextureRenderer();
     void execute(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left) override;
     void setup(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left) override;
     void teardown(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left) override;

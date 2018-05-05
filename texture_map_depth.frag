@@ -3,7 +3,6 @@
 in vec4 gl_FragCoord;
 in vec2 TexCoords;
 out vec4 gl_FragColor;
-
 out float gl_FragDepth;
 
 uniform sampler2D texture_color_sampler;
@@ -13,14 +12,18 @@ uniform bool use_depth;
 
 void main()
 {
-    gl_FragColor = texture(texture_color_sampler, TexCoords).rgba;
+    vec4 tex_color = texture(texture_color_sampler, TexCoords).rgba;
+    float frag_z = gl_FragCoord.z;
     if (use_depth) {
         float texture_depth = texture(texture_depth_sampler, TexCoords).x;
-        gl_FragDepth = texture_depth;
-//        gl_FragDepth = texture_depth;
-//        gl_FragDepth = 0.1;
-//        color = vec4(gl_FragDepth, gl_FragDepth, gl_FragDepth, 1.0);
-    } else {
-        gl_FragDepth = gl_FragCoord.z;
+        frag_z = texture_depth;
     }
+    gl_FragDepth = frag_z;
+    if (!use_depth) {
+        if (frag_z < 0.81 && frag_z > 0.79) {
+            // 0.8
+            tex_color = vec4(1, 1, 0, 1);
+        }
+    }
+    gl_FragColor = tex_color;
 }

@@ -63,17 +63,40 @@ int main(int argc, char * argv [])
 
     glfwInit();
     glfwSetErrorCallback(&error_callback);
-    std::unique_ptr<StereoWindow> stereo_window = std::make_unique<StereoWindow>(nullptr, nullptr);
+
+    GLFWmonitor * left_monitor = nullptr;
+    GLFWmonitor * right_monitor = nullptr;
+#ifdef __ARCLAB
+    int count;
+    GLFWmonitor** monitors = glfwGetMonitors(&count);
+    for (int i = 0; i < count; i++) {
+        std::cerr << " ";
+        if (i == 1) {
+            left_monitor = monitors[i];
+            std::cerr << "L";
+        } else if (i == 2) {
+            right_monitor = monitors[i];
+            std::cerr << "R";
+        } else {
+            std::cerr << " ";
+        }
+        std::cerr << " ";
+        std::cerr << "Monitor [" << std::to_string(i) << "] : "
+                  << glfwGetMonitorName(monitors[i])
+                  << std::endl;
+    }
+#endif
+    std::unique_ptr<StereoWindow> stereo_window = std::make_unique<StereoWindow>(left_monitor, right_monitor);
 
     std::shared_ptr<CameraTextureRenderer> camera_renderer = std::make_shared<CameraTextureRenderer>();
     camera_renderer->image_provider_left = image_provider_left;
     camera_renderer->image_provider_right = image_provider_right;
-//    stereo_window->left_procedures.push_back(camera_renderer);
-//    stereo_window->right_procedures.push_back(camera_renderer);
+    stereo_window->left_procedures.push_back(camera_renderer);
+    stereo_window->right_procedures.push_back(camera_renderer);
 
-    std::shared_ptr<VTKRenderProcedure> vtk_renderer = std::make_shared<VTKRenderProcedure>();
-    stereo_window->left_procedures.push_back(vtk_renderer);
-    stereo_window->right_procedures.push_back(vtk_renderer);
+//    std::shared_ptr<VTKRenderProcedure> vtk_renderer = std::make_shared<VTKRenderProcedure>();
+//    stereo_window->left_procedures.push_back(vtk_renderer);
+//    stereo_window->right_procedures.push_back(vtk_renderer);
 
 //    ImageProvider image_left(stereo_window->height, stereo_window->width,);
 
