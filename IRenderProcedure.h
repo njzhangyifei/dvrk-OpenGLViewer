@@ -15,6 +15,7 @@ public:
     virtual void setup(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left){};
     virtual void teardown(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left){};
     virtual void resize_callback(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left){};
+    virtual void imgui_callback(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left){};
 };
 
 #endif //OPENGLVIEWER_IRENDERPROCEDURE_H

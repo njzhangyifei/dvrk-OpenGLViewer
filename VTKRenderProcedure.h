@@ -20,13 +20,14 @@ public:
     void resize_callback(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) override;
 
     GLuint FramebufferName = 0;
-    vtkSmartPointer<vtkPolyDataMapper> mapper;
     vtkSmartPointer<vtkRenderer> renderer;
-    vtkSmartPointer<vtkActor> actor;
     GLuint colorTexture_L;
     GLuint colorTexture_R;
     GLuint depthTexture_L;
     GLuint depthTexture_R;
+
+    void imgui_callback(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left);
+    vtkSmartPointer<vtkTransform> transform;
 };
 
 

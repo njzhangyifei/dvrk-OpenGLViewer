@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 14)
 
 set(USE_IMGUI TRUE)
 set(WITH_ROS TRUE)
-#set(ARCLAB TRUE)
+set(ARCLAB TRUE)
 
 set(VTK_DIR "~/develop/opensource/VTK-build/")
 set(TBB_ROOT_DIR "~/develop/opensource/tbb2018_20171205oss")

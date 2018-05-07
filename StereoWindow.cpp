@@ -11,6 +11,7 @@
 #ifdef __WITH_IMGUI
 #include <imgui.h>
 #include <imgui_impl_glfw_gl3.h>
+
 #endif
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -65,12 +66,12 @@ StereoWindow::StereoWindow(GLFWmonitor * monitor_left, GLFWmonitor * monitor_rig
     glfwMakeContextCurrent(window_L);
     glfwSetWindowSizeCallback(window_L, &resize_callback);
     resize_callback(window_L, width, height);
-    glfwSwapInterval(0);
+    glfwSwapInterval(1);
 
     glfwMakeContextCurrent(window_R);
     glfwSetWindowSizeCallback(window_R, &resize_callback);
     resize_callback(window_R, width, height);
-    glfwSwapInterval(0);
+    glfwSwapInterval(1);
 }
 
 void StereoWindow::render_left() {
@@ -146,6 +147,12 @@ void StereoWindow::event_loop() {
         {
             ImGui::Begin("test");
             ImGui::End();
+        }
+        for (int i = 0; i < left_procedures.size(); ++i) {
+            left_procedures[i]->imgui_callback(this, window_L, true);
+        }
+        for (int i = 0; i < right_procedures.size(); ++i) {
+            right_procedures[i]->imgui_callback(this, window_R, false);
         }
         ImGui::ShowMetricsWindow();
         ImGui::Render();

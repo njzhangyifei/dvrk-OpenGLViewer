@@ -14,11 +14,16 @@
 #include <vtkSphereSource.h>
 #include <vtkTransform.h>
 #include <vtkProperty.h>
-//#include <vtkExternalOpenGLRenderWindow.h>
-
+#include <vtkProperty.h>
+#include <vtkTextProperty.h>
+#include <vtkTextActor.h>
+#include <vtkVectorText.h>
 #include "GLError.h"
 #include "vtkExternalOpenGLRenderWindowFixed.h"
 #include "TextureRenderer.h"
+#ifdef __WITH_IMGUI
+#include <imgui.h>
+#endif
 
 VTKRenderProcedure::VTKRenderProcedure(){
 }
@@ -91,14 +96,6 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         vtkWin->SetStereoTypeToLeft();
         vtkWin->StereoRenderOn();
         vtkWin->AlphaBitPlanesOn();
-        // Create a cone
-        vtkSmartPointer<vtkConeSource> coneSource = vtkSmartPointer<vtkConeSource>::New();
-        coneSource->Update();
-        renderer = vtkSmartPointer<vtkRenderer>::New();
-        mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-        mapper->SetInputConnection(coneSource->GetOutputPort());
-        actor = vtkSmartPointer<vtkActor>::New();
-        actor->SetMapper(mapper);
 
 
         // Create a sphere
@@ -133,10 +130,8 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
 
 
         // Apply a transform to the whole assembly
-        vtkSmartPointer<vtkTransform> transform =
-                vtkSmartPointer<vtkTransform>::New();
+        transform = vtkSmartPointer<vtkTransform>::New();
         transform->PostMultiply(); //this is the key line
-        transform->Translate(5.0, 0, 0);
         assembly->SetUserTransform(transform);
 
 
@@ -151,27 +146,51 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
             vtkActor::SafeDownCast(collection->GetNextProp())->GetProperty()->SetOpacity(0.5);
         }
 
+        vtkSmartPointer<vtkVectorText> textSource =
+                vtkSmartPointer<vtkVectorText>::New();
+        textSource->SetText("Hello");
+        textSource->Update();
+
+//        // Create a mapper and actor
+//        vtkSmartPointer<vtkPolyDataMapper> mapper =
+//                vtkSmartPointer<vtkPolyDataMapper>::New();
+//        mapper->SetInputConnection(textSource->GetOutputPort());
+//
+//        vtkSmartPointer<vtkActor> text_actor =
+//                vtkSmartPointer<vtkActor>::New();
+//        text_actor->SetMapper(mapper);
+//        text_actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+
+
         //Create a renderer, render window, and interactor
+        renderer = vtkSmartPointer<vtkRenderer>::New();
         renderer->UseDepthPeelingOff();
         renderer->EraseOn();
         renderer->SetBackgroundAlpha(0.0);
         renderer->SetBackground(0.275, 0.510, 0.706);
         renderer->AddActor(assembly);
-        renderer->AddActor(actor);
-        renderer->ResetCamera();
+//        renderer->ResetCamera();
+        renderer->GetActiveCamera()->SetViewUp(0, -1, 0);
         renderer->GetActiveCamera()->UseOffAxisProjectionOn();
 
+//        renderer->AddActor(text_actor);
         vtkWin->AddRenderer(renderer);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         texture_renderer = std::make_unique<TextureRenderer>(true);
     }
     texture_renderer->setup(stereoWindow, context, is_left);
+    texture_renderer->texture_id_left = colorTexture_L;
+    texture_renderer->texture_depth_id_left = depthTexture_L;
+    texture_renderer->texture_id_right = colorTexture_R;
+    texture_renderer->texture_depth_id_right = depthTexture_R;
+
 }
 
 void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) {
     if (is_left) {
         glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
+
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture_L, 0);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_L, 0);
         vtkWin->SetStereoTypeToLeft();
@@ -184,11 +203,6 @@ void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    texture_renderer->texture_id_left = colorTexture_L;
-    texture_renderer->texture_depth_id_left = depthTexture_L;
-    texture_renderer->texture_id_right = colorTexture_R;
-    texture_renderer->texture_depth_id_right = depthTexture_R;
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -239,6 +253,24 @@ void VTKRenderProcedure::resize_callback(StereoWindow *stereoWindow, GLFWwindow 
     }
 }
 
+void VTKRenderProcedure::imgui_callback(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left) {
+#ifdef __WITH_IMGUI
+    if (!is_left) return;
+    {
+        ImGui::Begin(typeid(this).name());
+        transform->Identity();
+        static float x, y, z;
+        ImGui::SliderFloat("X displacement", &x, -1.0f, 1.0f);
+        ImGui::SliderFloat("Y displacement", &y, -1.0f, 1.0f);
+        ImGui::SliderFloat("Z displacement", &z, -10.0f, 0.0f);
+        transform->Translate(x,y,z);
+        double eye[3];
+        renderer->GetActiveCamera()->GetPosition(eye);
+        ImGui::Text("Eye Position: [%.2f   %.2f   %.2f]", eye[0], eye[1], eye[2]);
+        ImGui::End();
+    }
+#endif
+}
 
 
 
