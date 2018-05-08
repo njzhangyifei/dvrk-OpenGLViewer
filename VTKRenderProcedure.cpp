@@ -21,13 +21,14 @@
 #include "GLError.h"
 #include "vtkExternalOpenGLRenderWindowFixed.h"
 #include "TextureRenderer.h"
+#include "VTKCameraManager.h"
+
 #ifdef __WITH_IMGUI
 #include <imgui.h>
 #endif
 
 VTKRenderProcedure::VTKRenderProcedure(){
 }
-
 
 std::unique_ptr<TextureRenderer> texture_renderer;
 void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) {
@@ -92,9 +93,9 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         vtkWin->Start();
 //        vtkWin->DoubleBufferOff();
 //        vtkWin->SwapBuffersOff();
-        vtkWin->StereoCapableWindowOn();
-        vtkWin->SetStereoTypeToLeft();
-        vtkWin->StereoRenderOn();
+//        vtkWin->StereoCapableWindowOn();
+//        vtkWin->SetStereoTypeToLeft();
+//        vtkWin->StereoRenderOn();
         vtkWin->AlphaBitPlanesOn();
 
 
@@ -193,12 +194,14 @@ void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context
 
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture_L, 0);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_L, 0);
-        vtkWin->SetStereoTypeToLeft();
+//        vtkWin->SetStereoTypeToLeft();
+        renderer->SetActiveCamera(VTKCameraManager::get_instance()->camera_left);
         vtkWin->Render();
 
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture_R, 0);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_R, 0);
-        vtkWin->SetStereoTypeToRight();
+//        vtkWin->SetStereoTypeToRight();
+        renderer->SetActiveCamera(VTKCameraManager::get_instance()->camera_right);
         vtkWin->Render();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -213,17 +216,18 @@ void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context
 
 void VTKRenderProcedure::resize_callback(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) {
     if (is_left) {
-        int info[4];
-        glGetIntegerv(GL_VIEWPORT, info);
-        vtkWin->SetPosition(info[0], info[1]);
-        vtkWin->SetSize(info[2], info[3]);
-        vtkWin->Modified();
+//        glGetIntegerv(GL_VIEWPORT, info);
+//        int info[4];
+//        vtkWin->SetPosition(info[0], info[1]);
+//        vtkWin->SetSize(info[2], info[3]);
+//        vtkWin->Modified();
+
         // 1920 1080
-        float ratio = info[2] / ((float)info[3]);
-        renderer->GetActiveCamera()->SetScreenBottomLeft (-0.5, -0.5 / ratio, -0.5);
-        renderer->GetActiveCamera()->SetScreenBottomRight( 0.5, -0.5 / ratio, -0.5);
-        renderer->GetActiveCamera()->SetScreenTopRight   ( 0.5,  0.5 / ratio, -0.5);
-        renderer->GetActiveCamera()->UseOffAxisProjectionOn();
+//        float ratio = info[2] / ((float)info[3]);
+//        renderer->GetActiveCamera()->SetScreenBottomLeft (-0.5, -0.5 / ratio, -0.5);
+//        renderer->GetActiveCamera()->SetScreenBottomRight( 0.5, -0.5 / ratio, -0.5);
+//        renderer->GetActiveCamera()->SetScreenTopRight   ( 0.5,  0.5 / ratio, -0.5);
+//        renderer->GetActiveCamera()->UseOffAxisProjectionOn();
 
         // Give an empty image to OpenGL ( the last "0" )
         glActiveTexture(GL_TEXTURE0);
@@ -270,6 +274,10 @@ void VTKRenderProcedure::imgui_callback(StereoWindow * stereoWindow, GLFWwindow 
         ImGui::End();
     }
 #endif
+}
+
+void VTKRenderProcedure::image_resize_callback(int width, int height, bool is_left) {
+
 }
 
 

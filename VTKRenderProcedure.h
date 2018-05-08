@@ -8,8 +8,9 @@
 
 #include "vtkExternalOpenGLRenderWindowFixed.h"
 #include "IRenderProcedure.h"
+#include "IRenderProcedureImageAligned.h"
 
-class VTKRenderProcedure  : public IRenderProcedure{
+class VTKRenderProcedure  : public IRenderProcedureImageAligned{
 protected:
     vtkSmartPointer<vtkExternalOpenGLRenderWindowFixed> vtkWin;
 public:
@@ -18,6 +19,7 @@ public:
     void execute(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) override;
     void setup(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) override;
     void resize_callback(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) override;
+    void image_resize_callback(int width, int height, bool is_left) override;
 
     GLuint FramebufferName = 0;
     vtkSmartPointer<vtkRenderer> renderer;

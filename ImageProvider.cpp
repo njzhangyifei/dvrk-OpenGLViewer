@@ -43,6 +43,7 @@ void ImageProvider::upload() {
             this->width = (uint32_t) std::max(image.cols, 1);
             generate_texture();
         } else {
+            glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, texture_id);
             glTexSubImage2D(GL_TEXTURE_2D, 0, // pyramid level
                             0, 0, width, height,

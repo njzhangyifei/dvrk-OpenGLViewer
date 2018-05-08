@@ -36,6 +36,8 @@ TextureRenderer::TextureRenderer(bool depth) {
             tl_x, tl_y, 1.0f, 0.0f, 0.0f,
             br_x, tl_y, 1.0f, 1.0f, 0.0f,
     };
+    this->texture_scale_height = 1.0f;
+    this->texture_scale_width = 1.0f;
     this->use_depth = depth;
     vertex_shader = get_cwd() + std::string(TEXTURE_MAP_DEPTH_V_SHADER_PATH);
     fragment_shader = get_cwd() + std::string(TEXTURE_MAP_DEPTH_F_SHADER_PATH);
@@ -97,6 +99,8 @@ void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, 
         }
     }
     glUniform1i(glGetUniformLocation(shaderProgram, "use_depth"), (this->use_depth) ? 1 : 0);
+    glUniform1f(glGetUniformLocation(shaderProgram, "texture_scale_height"), texture_scale_height);
+    glUniform1f(glGetUniformLocation(shaderProgram, "texture_scale_width"),  texture_scale_width);
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_color_sampler"), 0);
     if (use_depth) {
         glUniform1i(glGetUniformLocation(shaderProgram, "texture_depth_sampler"), 1);

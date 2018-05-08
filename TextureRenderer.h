@@ -34,6 +34,9 @@ public:
     GLuint texture_id_right;
     GLuint texture_depth_id_left;
     GLuint texture_depth_id_right;
+
+    float texture_scale_height;
+    float texture_scale_width;
 };
 
 

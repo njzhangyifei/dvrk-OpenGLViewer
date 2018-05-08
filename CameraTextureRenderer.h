@@ -9,12 +9,14 @@
 #include <boost/shared_ptr.hpp>
 #include "TextureRenderer.h"
 #include "ImageProvider.h"
+#include "IRenderProcedureImageAligned.h"
 
 class CameraTextureRenderer : public TextureRenderer{
 public:
     std::shared_ptr<ImageProvider> image_provider_left;
     std::shared_ptr<ImageProvider> image_provider_right;
     void execute(StereoWindow * stereoWindow, GLFWwindow *context, bool is_left) override;
+    void resize_callback(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) override;
 };
 
 
