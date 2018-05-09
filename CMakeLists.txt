@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 14)
 
 set(USE_IMGUI TRUE)
 set(WITH_ROS TRUE)
-#set(ARCLAB TRUE)
+set(ARCLAB TRUE)
 
 set(VTK_DIR "~/develop/opensource/VTK-build/")
 set(TBB_ROOT_DIR "~/develop/opensource/tbb2018_20171205oss")
@@ -93,7 +93,9 @@ endif()
 
 if (WITH_ROS)
     add_definitions(-D__WITH_ROS)
-    set(ROS_INTEROP ROSStereoImageProvider.cpp ROSStereoImageProvider.h VTKCameraManager.cpp VTKCameraManager.h ROSCameraInfoProvider.cpp ROSCameraInfoProvider.h)
+    set(ROS_INTEROP
+            ROSStereoImageProvider.cpp ROSStereoImageProvider.h
+            )
 endif()
 
 
@@ -107,9 +109,13 @@ add_executable(dvrk-OpenGLViewer
         TextureRenderer.cpp TextureRenderer.h
         GLError.cpp GLError.h
         json.hpp
+        get_cwd.h get_cwd.cpp
         ${ROS_INTEROP}
         CameraTextureRenderer.cpp CameraTextureRenderer.h
-        VTKRenderProcedure.cpp VTKRenderProcedure.h get_cwd.h get_cwd.cpp IRenderProcedureImageAligned.h)
+        VTKRenderProcedure.cpp VTKRenderProcedure.h
+        IImageAligned.h
+        VTKCameraManager.cpp VTKCameraManager.h
+        )
 
 file(GLOB FRAG_SHADERS "*.frag")
 file(GLOB VERT_SHADERS "*.vert")

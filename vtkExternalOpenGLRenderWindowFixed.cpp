@@ -18,14 +18,6 @@ void vtkExternalOpenGLRenderWindowFixed::Start(void)
 
   // Use hardware acceleration
   this->SetIsDirect(1);
-
-  if (this->AutomaticWindowPositionAndResize)
-  {
-    int info[4];
-    glGetIntegerv(GL_VIEWPORT, info);
-    this->SetPosition(info[0], info[1]);
-    this->SetSize(info[2], info[3]);
-  }
 }
 
 

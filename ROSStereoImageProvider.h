@@ -16,8 +16,8 @@ public:
     ros::NodeHandlePtr nh_ptr;
     ROSStereoImageProvider(ros::NodeHandlePtr nh_ptr);
     std::unique_ptr<image_transport::ImageTransport> image_transport;
-    std::unique_ptr<image_transport::Subscriber> subscriber_left;
-    std::unique_ptr<image_transport::Subscriber> subscriber_right;
+    std::unique_ptr<image_transport::CameraSubscriber> subscriber_left;
+    std::unique_ptr<image_transport::CameraSubscriber> subscriber_right;
 
     std::shared_ptr<ImageProvider> image_provider_left;
     std::shared_ptr<ImageProvider> image_provider_right;
@@ -25,8 +25,10 @@ public:
 protected:
     cv_bridge::CvImageConstPtr cv_share_left;
     cv_bridge::CvImageConstPtr cv_share_right;
-    void image_callback_left(const sensor_msgs::ImageConstPtr &msg);
-    void image_callback_right(const sensor_msgs::ImageConstPtr &msg);
+
+    void image_callback_left(const sensor_msgs::ImageConstPtr &msg, const sensor_msgs::CameraInfoConstPtr &ci);
+
+    void image_callback_right(const sensor_msgs::ImageConstPtr &msg, const sensor_msgs::CameraInfoConstPtr &ci);
 };
 
 

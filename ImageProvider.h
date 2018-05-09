@@ -10,14 +10,19 @@
 #include <vtk_glew.h>
 #include <opencv2/opencv.hpp>
 #include <mutex>
+#include <memory>
+#include "IImageAligned.h"
 
 class ImageProvider {
 protected:
     std::mutex image_lock;
     bool need_upload;
     void generate_texture();
+    void upload_texture();
+
 public:
     ImageProvider(uint32_t height, uint32_t width, std::string fallback_msg = std::string("No Signal"));
+    std::vector<std::shared_ptr<IImageAligned>> image_aligned_subscribers;
     void upload();
     void set_image(const cv::Mat & m);
     // RGB RGB RGB RGB RGB, row by column

@@ -9,7 +9,7 @@
 #include <boost/shared_ptr.hpp>
 #include "TextureRenderer.h"
 #include "ImageProvider.h"
-#include "IRenderProcedureImageAligned.h"
+#include "IImageAligned.h"
 
 class CameraTextureRenderer : public TextureRenderer{
 public:

@@ -6,7 +6,7 @@
 
 VTKCameraManager * VTKCameraManager::instance = nullptr;
 
-VTKCameraManager * VTKCameraManager::get_instance() {
+VTKCameraManager * VTKCameraManager::get() {
     if (!instance) {
         instance = new VTKCameraManager();
     }

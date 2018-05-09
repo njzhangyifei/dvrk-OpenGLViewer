@@ -19,6 +19,7 @@
 #include <ros/init.h>
 #endif
 #include "shader.h"
+#include "IImageAligned.h"
 #include "ImageProvider.h"
 #include "StereoWindow.h"
 #include "TextureRenderer.h"
@@ -97,6 +98,8 @@ int main(int argc, char * argv [])
     std::shared_ptr<VTKRenderProcedure> vtk_renderer = std::make_shared<VTKRenderProcedure>();
     stereo_window->left_procedures.push_back(vtk_renderer);
     stereo_window->right_procedures.push_back(vtk_renderer);
+
+    image_provider_left->image_aligned_subscribers.push_back(vtk_renderer);
 
 //    ImageProvider image_left(stereo_window->height, stereo_window->width,);
 

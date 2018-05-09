@@ -91,11 +91,10 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
 
         vtkWin = vtkSmartPointer<vtkExternalOpenGLRenderWindowFixed>::New();
         vtkWin->Start();
-//        vtkWin->DoubleBufferOff();
-//        vtkWin->SwapBuffersOff();
-//        vtkWin->StereoCapableWindowOn();
-//        vtkWin->SetStereoTypeToLeft();
-//        vtkWin->StereoRenderOn();
+        vtkWin->SwapBuffersOff();
+        vtkWin->StereoCapableWindowOn();
+        vtkWin->SetStereoTypeToLeft();
+        vtkWin->StereoRenderOn();
         vtkWin->AlphaBitPlanesOn();
 
 
@@ -189,73 +188,51 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
 }
 
 void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) {
+    int * pos = vtkWin->GetPosition();
+    int * size = vtkWin->GetSize();
     if (is_left) {
+        int original_viewport[4];
+        glGetIntegerv(GL_VIEWPORT, original_viewport);
+        resize_textures();
         glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
 
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture_L, 0);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_L, 0);
-//        vtkWin->SetStereoTypeToLeft();
-        renderer->SetActiveCamera(VTKCameraManager::get_instance()->camera_left);
+        glViewport(pos[0], pos[1], size[0], size[1]);
+        renderer->SetActiveCamera(VTKCameraManager::get()->camera_left);
+        vtkWin->Modified();
         vtkWin->Render();
 
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture_R, 0);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_R, 0);
-//        vtkWin->SetStereoTypeToRight();
-        renderer->SetActiveCamera(VTKCameraManager::get_instance()->camera_right);
+        glViewport(pos[0], pos[1], size[0], size[1]);
+        renderer->SetActiveCamera(VTKCameraManager::get()->camera_right);
+        vtkWin->Modified();
         vtkWin->Render();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(original_viewport[0], original_viewport[1],
+                   original_viewport[2], original_viewport[3]);
     }
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
+    if (is_left) {
+        texture_renderer->texture_scale_width = ((float)stereoWindow->width) / size[0];
+        texture_renderer->texture_scale_height = ((float)stereoWindow->height) / size[1];
+    } else {
+        texture_renderer->texture_scale_width = ((float)stereoWindow->width) / size[0];
+        texture_renderer->texture_scale_height = ((float)stereoWindow->height) / size[1];
+    }
     texture_renderer->execute(stereoWindow, context, is_left);
     glDisable(GL_BLEND);
 }
 
 void VTKRenderProcedure::resize_callback(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) {
-    if (is_left) {
-//        glGetIntegerv(GL_VIEWPORT, info);
-//        int info[4];
-//        vtkWin->SetPosition(info[0], info[1]);
-//        vtkWin->SetSize(info[2], info[3]);
-//        vtkWin->Modified();
-
-        // 1920 1080
-//        float ratio = info[2] / ((float)info[3]);
-//        renderer->GetActiveCamera()->SetScreenBottomLeft (-0.5, -0.5 / ratio, -0.5);
-//        renderer->GetActiveCamera()->SetScreenBottomRight( 0.5, -0.5 / ratio, -0.5);
-//        renderer->GetActiveCamera()->SetScreenTopRight   ( 0.5,  0.5 / ratio, -0.5);
-//        renderer->GetActiveCamera()->UseOffAxisProjectionOn();
-
-        // Give an empty image to OpenGL ( the last "0" )
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, colorTexture_L);
-        glTexImage2D(GL_TEXTURE_2D, 0,
-                     GL_RGBA8, stereoWindow->width, stereoWindow->height, 0,
-                     GL_RGBA, GL_UNSIGNED_BYTE, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        glBindTexture(GL_TEXTURE_2D, colorTexture_R);
-        glTexImage2D(GL_TEXTURE_2D, 0,
-                     GL_RGBA8, stereoWindow->width, stereoWindow->height, 0,
-                     GL_RGBA, GL_UNSIGNED_BYTE, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        glBindTexture(GL_TEXTURE_2D, depthTexture_L);
-        glTexImage2D(GL_TEXTURE_2D, 0,
-                     GL_DEPTH_COMPONENT24, stereoWindow->width, stereoWindow->height, 0,
-                     GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        glBindTexture(GL_TEXTURE_2D, depthTexture_R);
-        glTexImage2D(GL_TEXTURE_2D, 0,
-                     GL_DEPTH_COMPONENT24, stereoWindow->width, stereoWindow->height, 0,
-                     GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
+    // do we need to handle this?
 }
+
 
 void VTKRenderProcedure::imgui_callback(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left) {
 #ifdef __WITH_IMGUI
@@ -269,16 +246,53 @@ void VTKRenderProcedure::imgui_callback(StereoWindow * stereoWindow, GLFWwindow 
         ImGui::SliderFloat("Z displacement", &z, -10.0f, 0.0f);
         transform->Translate(x,y,z);
         double eye[3];
-        renderer->GetActiveCamera()->GetPosition(eye);
-        ImGui::Text("Eye Position: [%.2f   %.2f   %.2f]", eye[0], eye[1], eye[2]);
+//        renderer->GetActiveCamera()->GetPosition(eye);
+//        ImGui::Text("Eye Position: [%.2f   %.2f   %.2f]", eye[0], eye[1], eye[2]);
         ImGui::End();
     }
 #endif
 }
 
-void VTKRenderProcedure::image_resize_callback(int width, int height, bool is_left) {
-
+void VTKRenderProcedure::image_resize_callback(int width, int height) {
+    IImageAligned::image_resize_callback(width, height);
 }
 
 
+void VTKRenderProcedure::resize_textures(){
+    {
+        std::lock_guard<std::mutex> lk(image_resize_lock);
+        if (image_resized) {
+            vtkWin->SetPosition(0, 0);
+            vtkWin->SetSize(image_width, image_height);
+            vtkWin->Modified();
+
+            // image is resized, redo textures
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, colorTexture_L);
+            glTexImage2D(GL_TEXTURE_2D, 0,
+                         GL_RGBA8, image_width, image_height, 0,
+                         GL_RGBA, GL_UNSIGNED_BYTE, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            glBindTexture(GL_TEXTURE_2D, colorTexture_R);
+            glTexImage2D(GL_TEXTURE_2D, 0,
+                         GL_RGBA8, image_width, image_height, 0,
+                         GL_RGBA, GL_UNSIGNED_BYTE, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            glBindTexture(GL_TEXTURE_2D, depthTexture_L);
+            glTexImage2D(GL_TEXTURE_2D, 0,
+                         GL_DEPTH_COMPONENT24, image_width, image_height, 0,
+                         GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            glBindTexture(GL_TEXTURE_2D, depthTexture_R);
+            glTexImage2D(GL_TEXTURE_2D, 0,
+                         GL_DEPTH_COMPONENT24, image_width, image_height, 0,
+                         GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            image_resized = false;
+        }
+    }
+}
 

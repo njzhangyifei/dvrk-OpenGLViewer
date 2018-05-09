@@ -16,7 +16,7 @@ private:
 
 public:
     void finalize();
-    static VTKCameraManager * get_instance();
+    static VTKCameraManager * get();
 
     int image_height;
     int image_width;
