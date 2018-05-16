@@ -25,9 +25,10 @@ public:
 protected:
     cv_bridge::CvImageConstPtr cv_share_left;
     cv_bridge::CvImageConstPtr cv_share_right;
+    sensor_msgs::CameraInfoConstPtr camera_info_left;
+    sensor_msgs::CameraInfoConstPtr camera_info_right;
 
     void image_callback_left(const sensor_msgs::ImageConstPtr &msg, const sensor_msgs::CameraInfoConstPtr &ci);
-
     void image_callback_right(const sensor_msgs::ImageConstPtr &msg, const sensor_msgs::CameraInfoConstPtr &ci);
 };
 

@@ -3,7 +3,9 @@
 //
 
 #include "ROSStereoImageProvider.h"
+#include "VTKCameraManager.h"
 #include <cv_bridge/cv_bridge.h>
+#include <vtkCamera.h>
 
 ROSStereoImageProvider::ROSStereoImageProvider(ros::NodeHandlePtr nh_ptr) {
     this->nh_ptr = nh_ptr;
@@ -25,10 +27,10 @@ ROSStereoImageProvider::ROSStereoImageProvider(ros::NodeHandlePtr nh_ptr) {
 //    );
 
     subscriber_left = std::make_unique<image_transport::CameraSubscriber>(
-            image_transport->subscribeCamera("/stereo/slave/left/image" , 1, &ROSStereoImageProvider::image_callback_left, this)
+            image_transport->subscribeCamera("/stereo/master/left/image" , 1, &ROSStereoImageProvider::image_callback_left, this)
     );
     subscriber_right = std::make_unique<image_transport::CameraSubscriber>(
-            image_transport->subscribeCamera("/stereo/slave/right/image", 1, &ROSStereoImageProvider::image_callback_right, this)
+            image_transport->subscribeCamera("/stereo/master/right/image", 1, &ROSStereoImageProvider::image_callback_right, this)
     );
 }
 
@@ -37,6 +39,9 @@ void ROSStereoImageProvider::image_callback_left(const sensor_msgs::ImageConstPt
         cv_share_left = cv_bridge::toCvShare(msg, "rgb8");
         image_provider_left->set_image(cv_share_left->image);
     }
+    std::array<double, 9> K{};
+    std::copy(ci->K.begin(), ci->K.end(), K.begin());
+    VTKCameraManager::get()->update_camera_intrinsics_left(K);
 }
 
 void ROSStereoImageProvider::image_callback_right(const sensor_msgs::ImageConstPtr& msg, const sensor_msgs::CameraInfoConstPtr& ci) {
@@ -44,4 +49,7 @@ void ROSStereoImageProvider::image_callback_right(const sensor_msgs::ImageConstP
         cv_share_right = cv_bridge::toCvShare(msg, "rgb8");
         image_provider_right->set_image(cv_share_right->image);
     }
+    std::array<double, 9> K{};
+    std::copy(ci->K.begin(), ci->K.end(), K.begin());
+    VTKCameraManager::get()->update_camera_intrinsics_right(K);
 }

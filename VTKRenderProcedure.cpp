@@ -92,15 +92,16 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         vtkWin = vtkSmartPointer<vtkExternalOpenGLRenderWindowFixed>::New();
         vtkWin->Start();
         vtkWin->SwapBuffersOff();
-        vtkWin->StereoCapableWindowOn();
-        vtkWin->SetStereoTypeToLeft();
-        vtkWin->StereoRenderOn();
+//        vtkWin->StereoCapableWindowOn();
+//        vtkWin->SetStereoTypeToLeft();
+//        vtkWin->StereoRenderOn();
         vtkWin->AlphaBitPlanesOn();
 
 
         // Create a sphere
         vtkSmartPointer<vtkSphereSource> sphereSource =
                 vtkSmartPointer<vtkSphereSource>::New();
+        sphereSource->SetRadius(1);
         sphereSource->Update();
 
         vtkSmartPointer<vtkPolyDataMapper> sphereMapper =
@@ -170,14 +171,14 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         renderer->SetBackground(0.275, 0.510, 0.706);
         renderer->AddActor(assembly);
 //        renderer->ResetCamera();
-        renderer->GetActiveCamera()->SetViewUp(0, -1, 0);
-        renderer->GetActiveCamera()->UseOffAxisProjectionOn();
+//        renderer->GetActiveCamera()->SetViewUp(0, -1, 0);
+//        renderer->GetActiveCamera()->UseOffAxisProjectionOn();
 
 //        renderer->AddActor(text_actor);
         vtkWin->AddRenderer(renderer);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        texture_renderer = std::make_unique<TextureRenderer>(true);
+        texture_renderer = std::make_unique<TextureRenderer>(true, true);
     }
     texture_renderer->setup(stereoWindow, context, is_left);
     texture_renderer->texture_id_left = colorTexture_L;
@@ -243,11 +244,11 @@ void VTKRenderProcedure::imgui_callback(StereoWindow * stereoWindow, GLFWwindow 
         static float x, y, z;
         ImGui::SliderFloat("X displacement", &x, -1.0f, 1.0f);
         ImGui::SliderFloat("Y displacement", &y, -1.0f, 1.0f);
-        ImGui::SliderFloat("Z displacement", &z, -10.0f, 0.0f);
+        ImGui::SliderFloat("Z displacement", &z, -10.0f, 10.0f);
         transform->Translate(x,y,z);
         double eye[3];
-//        renderer->GetActiveCamera()->GetPosition(eye);
-//        ImGui::Text("Eye Position: [%.2f   %.2f   %.2f]", eye[0], eye[1], eye[2]);
+        renderer->GetActiveCamera()->GetPosition(eye);
+        ImGui::Text("Eye Position: [%.2f   %.2f   %.2f]", eye[0], eye[1], eye[2]);
         ImGui::End();
     }
 #endif
@@ -256,7 +257,6 @@ void VTKRenderProcedure::imgui_callback(StereoWindow * stereoWindow, GLFWwindow 
 void VTKRenderProcedure::image_resize_callback(int width, int height) {
     IImageAligned::image_resize_callback(width, height);
 }
-
 
 void VTKRenderProcedure::resize_textures(){
     {

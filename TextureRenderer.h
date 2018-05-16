@@ -18,13 +18,14 @@ protected:
     GLfloat * quadVertices;
     static GLuint shaderProgram;
     bool use_depth;
+    bool use_distortion;
     std::string vertex_shader;
     std::string fragment_shader;
 
     void load_data();
 
 public:
-    TextureRenderer(bool depth);
+    TextureRenderer(bool depth, bool distortion);
     TextureRenderer();
     void execute(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left) override;
     void setup(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left) override;

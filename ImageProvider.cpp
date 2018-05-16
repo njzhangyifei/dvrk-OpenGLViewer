@@ -3,6 +3,7 @@
 //
 
 #include "ImageProvider.h"
+#include "VTKCameraManager.h"
 
 
 ImageProvider::ImageProvider(uint32_t height, uint32_t width, std::string fallback_msg) {
@@ -11,7 +12,8 @@ ImageProvider::ImageProvider(uint32_t height, uint32_t width, std::string fallba
     need_upload = true;
     this->height = height;
     this->width = width;
-    cv::putText(image, fallback_msg, {10, height/2}, cv::FONT_HERSHEY_SIMPLEX, 2, {0,255,0}, 2, cv::LINE_AA);
+    cv::putText(image, fallback_msg, {10, static_cast<int>(height / 2.0)},
+                cv::FONT_HERSHEY_SIMPLEX, 2, {0, 255, 0}, 2, cv::LINE_AA);
 }
 
 void ImageProvider::generate_texture() {
@@ -50,6 +52,7 @@ void ImageProvider::upload() {
                 generate_texture();
             }
             // resize callback
+            VTKCameraManager::get()->resize(width, height);
             for (int i = 0; i < image_aligned_subscribers.size(); i++) {
                 image_aligned_subscribers[i]->image_resize_callback(width, height);
             }

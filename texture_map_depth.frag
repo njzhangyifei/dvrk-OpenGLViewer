@@ -9,6 +9,7 @@ uniform sampler2D texture_color_sampler;
 uniform sampler2D texture_depth_sampler;
 
 uniform bool use_depth;
+uniform bool use_distortion;
 uniform float texture_scale_height;
 uniform float texture_scale_width;
 

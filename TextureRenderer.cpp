@@ -19,10 +19,10 @@
 
 GLuint TextureRenderer::shaderProgram = 0;
 
-TextureRenderer::TextureRenderer() : TextureRenderer(false){
+TextureRenderer::TextureRenderer() : TextureRenderer(false, false){
 }
 
-TextureRenderer::TextureRenderer(bool depth) {
+TextureRenderer::TextureRenderer(bool depth, bool distortion) {
     glm::vec2 top_left = glm::vec2({-1, 1});
     glm::vec2 bottom_right = glm::vec2({1, -1});
     float tl_x = top_left.x;
@@ -38,7 +38,8 @@ TextureRenderer::TextureRenderer(bool depth) {
     };
     this->texture_scale_height = 1.0f;
     this->texture_scale_width = 1.0f;
-    this->use_depth = depth;
+    this->use_depth      = depth;
+    this->use_distortion = distortion;
     vertex_shader = get_cwd() + std::string(TEXTURE_MAP_DEPTH_V_SHADER_PATH);
     fragment_shader = get_cwd() + std::string(TEXTURE_MAP_DEPTH_F_SHADER_PATH);
     if (!shaderProgram) {
@@ -99,13 +100,15 @@ void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, 
         }
     }
     glUniform1i(glGetUniformLocation(shaderProgram, "use_depth"), (this->use_depth) ? 1 : 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "use_distortion"), (this->use_distortion) ? 1 : 0);
     glUniform1f(glGetUniformLocation(shaderProgram, "texture_scale_height"), texture_scale_height);
     glUniform1f(glGetUniformLocation(shaderProgram, "texture_scale_width"),  texture_scale_width);
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_color_sampler"), 0);
     if (use_depth) {
         glUniform1i(glGetUniformLocation(shaderProgram, "texture_depth_sampler"), 1);
     }
-
+    if (use_distortion){
+    }
     if (is_left) {
         glBindVertexArray(VAO_left);
     } else {
