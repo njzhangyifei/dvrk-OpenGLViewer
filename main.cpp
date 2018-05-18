@@ -25,6 +25,7 @@
 #include "TextureRenderer.h"
 #include "CameraTextureRenderer.h"
 #include "VTKRenderProcedure.h"
+#include "VTKCameraManager.h"
 
 static void error_callback(int error, const char* description)
 {
@@ -41,6 +42,10 @@ int main(int argc, char * argv [])
 //    cv::namedWindow("test", CV_WINDOW_AUTOSIZE);
 //    cv::imshow("test", img.image);
 //    cv::waitKey(0);
+
+    VTKCameraManager::get()->load_camera_intrinsics(
+            "C:/Users/Yifei/unixhome/develop/arclab/dvrk-OpenGLViewer/camera_info/camera_calibration.yaml"
+    );
 
 #ifdef __WITH_ROS
     ros::init(argc, argv, "dvrk_OpenGLViewer");
@@ -101,7 +106,6 @@ int main(int argc, char * argv [])
 
     image_provider_left->image_aligned_subscribers.push_back(vtk_renderer);
 
-//    ImageProvider image_left(stereo_window->height, stereo_window->width,);
 
 //    cv::namedWindow("test");
 //    while (true) {
@@ -110,8 +114,9 @@ int main(int argc, char * argv [])
 //    }
 
     stereo_window->event_loop();
-
+    stereo_window = nullptr;
     glfwTerminate();
+
 //    GLFWwindow * window_L = glfwCreateWindow(400, 400, "test_l", NULL, NULL);
 //    GLFWwindow * window_R = glfwCreateWindow(400, 400, "test_r", NULL, window_L);
 //

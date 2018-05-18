@@ -3,6 +3,7 @@
 //
 
 #include "VTKCameraManager.h"
+#include <opencv2/opencv.hpp>
 #include <vtkMath.h>
 
 inline bool isEqual(double x, double y)
@@ -36,14 +37,21 @@ VTKCameraManager::VTKCameraManager() {
     world_to_cam_right = cv::Mat::eye(4, 4, CV_64FC1);
     camera_left = vtkSmartPointer<vtkCamera>::New();
     camera_right = vtkSmartPointer<vtkCamera>::New();
-    K_left = std::array<double, 9>({1, 0, 0,
-                                    0, 1, 0,
-                                    0, 0, 1});
-    K_right = K_left;
-    setup_camera_intrinsics(camera_left,  K_left[0], K_left[4], K_left[2], K_left[5]);
-    setup_camera_intrinsics(camera_right, K_right[0], K_right[4], K_right[2], K_right[5]);
+    K_left = cv::Mat::eye(3, 3, CV_64FC1);
+    K_right = K_left.clone();
+    setup_camera_intrinsics(camera_left,  K_left);
+    setup_camera_intrinsics(camera_right, K_right);
     setup_camera_extrinsics(camera_left, world_to_cam_left);
     setup_camera_extrinsics(camera_right, world_to_cam_right);
+}
+
+void VTKCameraManager::setup_camera_intrinsics(const vtkSmartPointer<vtkCamera> & cam, const cv::Mat & K) {
+    // fx   0  cx
+    //  0  fy  cy
+    //  0   0   1
+    setup_camera_intrinsics(camera_left,
+                            K.at<double>(0,0), K.at<double>(1,1),
+                            K.at<double>(0,2), K.at<double>(1,2));
 }
 
 void VTKCameraManager::setup_camera_intrinsics
@@ -101,21 +109,34 @@ void VTKCameraManager::setup_camera_extrinsics
 void VTKCameraManager::resize(int width, int height) {
     image_width = width;
     image_height = height;
-    setup_camera_intrinsics(camera_left,  K_left[0], K_left[4], K_left[2], K_left[5]);
-    setup_camera_intrinsics(camera_right, K_right[0], K_right[4], K_right[2], K_right[5]);
+    setup_camera_intrinsics(camera_left,  K_left);
+    setup_camera_intrinsics(camera_right, K_right);
 }
 
-void VTKCameraManager::update_camera_intrinsics_left (const std::array<double, 9> & K) {
-    if (K != K_left){
-        K_left = K;
-        setup_camera_intrinsics(camera_left, K_left[0], K_left[4], K_left[2], K_left[5]);
-    }
+bool VTKCameraManager::load_camera_intrinsics(const char *yaml_file) {
+    cv::FileStorage fs;
+    std::cerr << yaml_file << std::endl;
+    fs.open(yaml_file, cv::FileStorage::READ);
+    if (!fs.isOpened()) return false;
+    fs["K1"] >> K_left;
+    fs["K2"] >> K_right;
+    std::cerr << K_left << std::endl;
+    std::cerr << K_right << std::endl;
+    fs.release();
+    return true;
 }
 
-void VTKCameraManager::update_camera_intrinsics_right(const std::array<double, 9> & K) {
-    if (K != K_right){
-        K_right = K;
-        setup_camera_intrinsics(camera_right, K_right[0], K_right[4], K_right[2], K_right[5]);
-    }
-}
+//void VTKCameraManager::update_camera_intrinsics_left (const std::array<double, 9> & K) {
+//    if (K != K_left){
+//        K_left = K;
+//        setup_camera_intrinsics(camera_left, K_left[0], K_left[4], K_left[2], K_left[5]);
+//    }
+//}
+//
+//void VTKCameraManager::update_camera_intrinsics_right(const std::array<double, 9> & K) {
+//    if (K != K_right){
+//        K_right = K;
+//        setup_camera_intrinsics(camera_right, K_right[0], K_right[4], K_right[2], K_right[5]);
+//    }
+//}
 

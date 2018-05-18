@@ -29,15 +29,15 @@ public:
     cv::Mat world_to_cam_left;
     cv::Mat world_to_cam_right;
 
+    cv::Mat K_left;
+    cv::Mat K_right;
+
     vtkSmartPointer<vtkCamera> camera_left;
     vtkSmartPointer<vtkCamera> camera_right;
 
-    std::array<double, 9>  K_left;
-    std::array<double, 9>  K_right;
+    bool load_camera_intrinsics(const char * yaml_file = nullptr);
 
-    void update_camera_intrinsics_left(const std::array<double, 9> &K);
-
-    void update_camera_intrinsics_right(const std::array<double, 9> &K);
+    void setup_camera_intrinsics(const vtkSmartPointer<vtkCamera> &cam, const cv::Mat &K);
 };
 
 
