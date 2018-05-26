@@ -131,7 +131,7 @@ bool VTKCameraManager::load_camera_calibration(const char *yaml_file) {
     std::cerr << R << std::endl;
     R.copyTo(cam_left_to_cam_right(cv::Range(0,3),cv::Range(0,3)));
     for (int i = 0; i < 3; i++){
-        cam_left_to_cam_right.at<double>(i,3) = T(i);
+        cam_left_to_cam_right.at<double>(i,3) = -T(i);
     }
     world_to_cam_right = world_to_cam_left * cam_left_to_cam_right;
     setup_camera_intrinsics(camera_left, K_left);

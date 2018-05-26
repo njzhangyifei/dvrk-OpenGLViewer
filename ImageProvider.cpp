@@ -58,7 +58,7 @@ void ImageProvider::upload() {
             }
         }
         upload_texture();
-#ifdef USE_ROS
+#ifdef __WITH_ROS
         need_upload = false;
 #endif
     }

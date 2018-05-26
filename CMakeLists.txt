@@ -6,7 +6,7 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/FindTBB)
 set(CMAKE_CXX_STANDARD 14)
 
 set(USE_IMGUI TRUE)
-#set(WITH_ROS TRUE)
+set(WITH_ROS TRUE)
 #set(ARCLAB TRUE)
 
 set(VTK_DIR "~/develop/opensource/VTK-build/")

@@ -44,7 +44,7 @@ int main(int argc, char * argv [])
 //    cv::waitKey(0);
 
     VTKCameraManager::get()->load_camera_calibration(
-            "C:/Users/Yifei/unixhome/develop/arclab/dvrk-OpenGLViewer/camera_info/camera_calibration.yaml"
+            "camera_info/camera_calibration.yaml"
     );
 
 #ifdef __WITH_ROS
