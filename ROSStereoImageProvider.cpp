@@ -39,9 +39,9 @@ void ROSStereoImageProvider::image_callback_left(const sensor_msgs::ImageConstPt
         cv_share_left = cv_bridge::toCvShare(msg, "rgb8");
         image_provider_left->set_image(cv_share_left->image);
     }
-    std::array<double, 9> K{};
-    std::copy(ci->K.begin(), ci->K.end(), K.begin());
-    VTKCameraManager::get()->update_camera_intrinsics_left(K);
+//    std::array<double, 9> K{};
+//    std::copy(ci->K.begin(), ci->K.end(), K.begin());
+//    VTKCameraManager::get()->update_camera_intrinsics_left(K);
 }
 
 void ROSStereoImageProvider::image_callback_right(const sensor_msgs::ImageConstPtr& msg, const sensor_msgs::CameraInfoConstPtr& ci) {
@@ -49,7 +49,7 @@ void ROSStereoImageProvider::image_callback_right(const sensor_msgs::ImageConstP
         cv_share_right = cv_bridge::toCvShare(msg, "rgb8");
         image_provider_right->set_image(cv_share_right->image);
     }
-    std::array<double, 9> K{};
-    std::copy(ci->K.begin(), ci->K.end(), K.begin());
-    VTKCameraManager::get()->update_camera_intrinsics_right(K);
+//    std::array<double, 9> K{};
+//    std::copy(ci->K.begin(), ci->K.end(), K.begin());
+//    VTKCameraManager::get()->update_camera_intrinsics_right(K);
 }

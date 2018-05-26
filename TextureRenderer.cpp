@@ -6,6 +6,7 @@
 #include "TextureRenderer.h"
 #include "shader.h"
 #include "get_cwd.h"
+#include "VTKCameraManager.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -99,15 +100,17 @@ void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, 
             glBindTexture(GL_TEXTURE_2D, texture_depth_id_right);
         }
     }
-    glUniform1i(glGetUniformLocation(shaderProgram, "use_depth"), (this->use_depth) ? 1 : 0);
-    glUniform1i(glGetUniformLocation(shaderProgram, "use_distortion"), (this->use_distortion) ? 1 : 0);
-    glUniform1f(glGetUniformLocation(shaderProgram, "texture_scale_height"), texture_scale_height);
-    glUniform1f(glGetUniformLocation(shaderProgram, "texture_scale_width"),  texture_scale_width);
+    glUniform1i(glGetUniformLocation(shaderProgram, "use_depth"),             (this->use_depth) ? 1 : 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "use_distortion"),        (this->use_distortion) ? 1 : 0);
+    glUniform1f(glGetUniformLocation(shaderProgram, "texture_scale_height"),  texture_scale_height);
+    glUniform1f(glGetUniformLocation(shaderProgram, "texture_scale_width"),   texture_scale_width);
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_color_sampler"), 0);
     if (use_depth) {
         glUniform1i(glGetUniformLocation(shaderProgram, "texture_depth_sampler"), 1);
     }
     if (use_distortion){
+        glUniform2fv(glGetUniformLocation(shaderProgram, "image_size"), 1, &image_size[0]);
+        glUniform4fv(glGetUniformLocation(shaderProgram, "camera_center_focus"), 1, &camera_center_focus[0]);
     }
     if (is_left) {
         glBindVertexArray(VAO_left);

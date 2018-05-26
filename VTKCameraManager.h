@@ -28,16 +28,21 @@ public:
 
     cv::Mat world_to_cam_left;
     cv::Mat world_to_cam_right;
+    cv::Mat cam_left_to_cam_right;
 
     cv::Mat K_left;
     cv::Mat K_right;
 
+    cv::Mat dist_coeff_left;
+    cv::Mat dist_coeff_right;
+
     vtkSmartPointer<vtkCamera> camera_left;
     vtkSmartPointer<vtkCamera> camera_right;
 
-    bool load_camera_intrinsics(const char * yaml_file = nullptr);
-
+    bool load_camera_calibration(const char * yaml_file = nullptr);
     void setup_camera_intrinsics(const vtkSmartPointer<vtkCamera> &cam, const cv::Mat &K);
+    std::pair<double, double> get_camera_center(const cv::Mat & m);
+    std::pair<double, double> get_camera_focus(const cv::Mat & m);
 };
 
 

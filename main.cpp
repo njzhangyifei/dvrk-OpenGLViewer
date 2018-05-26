@@ -43,7 +43,7 @@ int main(int argc, char * argv [])
 //    cv::imshow("test", img.image);
 //    cv::waitKey(0);
 
-    VTKCameraManager::get()->load_camera_intrinsics(
+    VTKCameraManager::get()->load_camera_calibration(
             "C:/Users/Yifei/unixhome/develop/arclab/dvrk-OpenGLViewer/camera_info/camera_calibration.yaml"
     );
 

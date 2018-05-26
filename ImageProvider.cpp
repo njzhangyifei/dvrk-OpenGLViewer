@@ -58,7 +58,9 @@ void ImageProvider::upload() {
             }
         }
         upload_texture();
+#ifdef USE_ROS
         need_upload = false;
+#endif
     }
     image_lock.unlock();
 }

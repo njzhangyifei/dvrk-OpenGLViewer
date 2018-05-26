@@ -35,6 +35,7 @@ VTKCameraManager::~VTKCameraManager() {
 VTKCameraManager::VTKCameraManager() {
     world_to_cam_left  = cv::Mat::eye(4, 4,  CV_64FC1);
     world_to_cam_right = cv::Mat::eye(4, 4, CV_64FC1);
+    cam_left_to_cam_right = cv::Mat::eye(4, 4, CV_64FC1);
     camera_left = vtkSmartPointer<vtkCamera>::New();
     camera_right = vtkSmartPointer<vtkCamera>::New();
     K_left = cv::Mat::eye(3, 3, CV_64FC1);
@@ -49,7 +50,7 @@ void VTKCameraManager::setup_camera_intrinsics(const vtkSmartPointer<vtkCamera> 
     // fx   0  cx
     //  0  fy  cy
     //  0   0   1
-    setup_camera_intrinsics(camera_left,
+    setup_camera_intrinsics(cam,
                             K.at<double>(0,0), K.at<double>(1,1),
                             K.at<double>(0,2), K.at<double>(1,2));
 }
@@ -60,8 +61,8 @@ void VTKCameraManager::setup_camera_intrinsics
     cam->SetViewAngle(viewAngle);
     double cx = image_width - px;
     double cy = py;
-    double win_center_x = cx / ( (image_width-1)/2.0) - 1 ;
-    double win_center_y = cy / ( (image_height-1)/2.0) - 1;
+    double win_center_x = cx / ( (image_width-1)/2) - 1 ;
+    double win_center_y = cy / ( (image_height-1)/2) - 1;
     cam->SetWindowCenter(win_center_x, win_center_y);
 }
 
@@ -113,30 +114,39 @@ void VTKCameraManager::resize(int width, int height) {
     setup_camera_intrinsics(camera_right, K_right);
 }
 
-bool VTKCameraManager::load_camera_intrinsics(const char *yaml_file) {
+bool VTKCameraManager::load_camera_calibration(const char *yaml_file) {
     cv::FileStorage fs;
     std::cerr << yaml_file << std::endl;
     fs.open(yaml_file, cv::FileStorage::READ);
     if (!fs.isOpened()) return false;
     fs["K1"] >> K_left;
     fs["K2"] >> K_right;
-    std::cerr << K_left << std::endl;
-    std::cerr << K_right << std::endl;
+    fs["D1"] >> dist_coeff_left;
+    fs["D2"] >> dist_coeff_right;
+    // load extrinsics
+    cv::Vec3d T;
+    cv::Mat R;
+    fs["T"] >> T;
+    fs["R"] >> R;
+    std::cerr << R << std::endl;
+    R.copyTo(cam_left_to_cam_right(cv::Range(0,3),cv::Range(0,3)));
+    for (int i = 0; i < 3; i++){
+        cam_left_to_cam_right.at<double>(i,3) = T(i);
+    }
+    world_to_cam_right = world_to_cam_left * cam_left_to_cam_right;
+    setup_camera_intrinsics(camera_left, K_left);
+    setup_camera_intrinsics(camera_right, K_right);
+    setup_camera_extrinsics(camera_left, world_to_cam_left);
+    setup_camera_extrinsics(camera_right, world_to_cam_right);
     fs.release();
     return true;
 }
 
-//void VTKCameraManager::update_camera_intrinsics_left (const std::array<double, 9> & K) {
-//    if (K != K_left){
-//        K_left = K;
-//        setup_camera_intrinsics(camera_left, K_left[0], K_left[4], K_left[2], K_left[5]);
-//    }
-//}
-//
-//void VTKCameraManager::update_camera_intrinsics_right(const std::array<double, 9> & K) {
-//    if (K != K_right){
-//        K_right = K;
-//        setup_camera_intrinsics(camera_right, K_right[0], K_right[4], K_right[2], K_right[5]);
-//    }
-//}
+std::pair<double, double> VTKCameraManager::get_camera_focus(const cv::Mat & m) {
+    return {m.at<double>(0,0), m.at<double>(1,1)};
+}
+
+std::pair<double, double> VTKCameraManager::get_camera_center(const cv::Mat & m) {
+    return {m.at<double>(0,2), m.at<double>(1,2)};
+}
 

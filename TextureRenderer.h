@@ -6,6 +6,7 @@
 #define OPENGLVIEWER_CAMERARENDERER_H
 
 #include "IRenderProcedure.h"
+#include <glm/glm.hpp>
 
 class StereoWindow;
 
@@ -19,6 +20,7 @@ protected:
     static GLuint shaderProgram;
     bool use_depth;
     bool use_distortion;
+
     std::string vertex_shader;
     std::string fragment_shader;
 
@@ -33,9 +35,14 @@ public:
 
     GLuint texture_id_left;
     GLuint texture_id_right;
+
     GLuint texture_depth_id_left;
     GLuint texture_depth_id_right;
 
+    glm::vec3 radial_distortion;
+    glm::vec2 tangential_distortion;
+    glm::vec4 camera_center_focus;
+    glm::vec2 image_size;
     float texture_scale_height;
     float texture_scale_width;
 };

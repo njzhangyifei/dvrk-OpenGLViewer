@@ -5,6 +5,7 @@
 #include <vtkCamera.h>
 #include <vtkActor.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkWarpLens.h>
 #include <vtkConeSource.h>
 #include "VTKRenderProcedure.h"
 #include <vtkOpenGLError.h>
@@ -119,6 +120,7 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         vtkSmartPointer<vtkPolyDataMapper> cubeMapper =
                 vtkSmartPointer<vtkPolyDataMapper>::New();
         cubeMapper->SetInputConnection(cubeSource->GetOutputPort());
+
         vtkSmartPointer<vtkActor> cubeActor =
                 vtkSmartPointer<vtkActor>::New();
         cubeActor->SetMapper(cubeMapper);
@@ -219,13 +221,12 @@ void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
-    if (is_left) {
-        texture_renderer->texture_scale_width = ((float)stereoWindow->width) / size[0];
-        texture_renderer->texture_scale_height = ((float)stereoWindow->height) / size[1];
-    } else {
-        texture_renderer->texture_scale_width = ((float)stereoWindow->width) / size[0];
-        texture_renderer->texture_scale_height = ((float)stereoWindow->height) / size[1];
-    }
+    texture_renderer->texture_scale_width =  ((float)stereoWindow->width) / size[0];
+    texture_renderer->texture_scale_height = ((float)stereoWindow->height) / size[1];
+    auto camera_center = VTKCameraManager::get()->get_camera_center(is_left ? VTKCameraManager::get()->K_left : VTKCameraManager::get()->K_right);
+    auto camera_focus = VTKCameraManager::get()->get_camera_focus(is_left ? VTKCameraManager::get()->K_left : VTKCameraManager::get()->K_right);
+    texture_renderer->camera_center_focus = {camera_center.first, camera_center.second, camera_focus.first, camera_focus.second};
+    texture_renderer->image_size = {VTKCameraManager::get()->image_width, VTKCameraManager::get()->image_height};
     texture_renderer->execute(stereoWindow, context, is_left);
     glDisable(GL_BLEND);
 }
@@ -242,13 +243,15 @@ void VTKRenderProcedure::imgui_callback(StereoWindow * stereoWindow, GLFWwindow 
         ImGui::Begin(typeid(this).name());
         transform->Identity();
         static float x, y, z;
-        ImGui::SliderFloat("X displacement", &x, -1.0f, 1.0f);
-        ImGui::SliderFloat("Y displacement", &y, -1.0f, 1.0f);
+        ImGui::SliderFloat("X displacement", &x, -10.0f, 10.0f);
+        ImGui::SliderFloat("Y displacement", &y, -10.0f, 10.0f);
         ImGui::SliderFloat("Z displacement", &z, -60.0f, 60.0f);
         transform->Translate(x,y,z);
         double eye[3];
-        renderer->GetActiveCamera()->GetPosition(eye);
-        ImGui::Text("Eye Position: [%.2f   %.2f   %.2f]", eye[0], eye[1], eye[2]);
+        VTKCameraManager::get()->camera_left->GetPosition(eye);
+        ImGui::Text("L Eye Position: [%.2f   %.2f   %.2f]", eye[0], eye[1], eye[2]);
+        VTKCameraManager::get()->camera_right->GetPosition(eye);
+        ImGui::Text("R Eye Position: [%.2f   %.2f   %.2f]", eye[0], eye[1], eye[2]);
         ImGui::End();
     }
 #endif

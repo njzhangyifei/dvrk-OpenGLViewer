@@ -115,7 +115,7 @@ add_executable(dvrk-OpenGLViewer
         VTKRenderProcedure.cpp VTKRenderProcedure.h
         IImageAligned.h
         VTKCameraManager.cpp VTKCameraManager.h
-        )
+        VideoCaptureImageSource.cpp VideoCaptureImageSource.h)
 
 file(GLOB FRAG_SHADERS "*.frag")
 file(GLOB VERT_SHADERS "*.vert")
