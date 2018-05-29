@@ -14,9 +14,44 @@ uniform bool use_distortion;
 
 uniform vec4 camera_center_focus;
 uniform vec2 image_size;
+uniform vec3 distortion_radial;
+uniform vec2 distortion_tangential;
 
 uniform float texture_scale_height;
 uniform float texture_scale_width;
+
+
+// MATLAB jet colormap
+float colormap_red(float x) {
+    if (x < 0.7) {
+        return 4.0 * x - 1.5;
+    } else {
+        return -4.0 * x + 4.5;
+    }
+}
+
+float colormap_green(float x) {
+    if (x < 0.5) {
+        return 4.0 * x - 0.5;
+    } else {
+        return -4.0 * x + 3.5;
+    }
+}
+
+float colormap_blue(float x) {
+    if (x < 0.3) {
+       return 4.0 * x + 0.5;
+    } else {
+       return -4.0 * x + 2.5;
+    }
+}
+
+vec4 colormap(float x) {
+    float r = clamp(colormap_red(x), 0.0, 1.0);
+    float g = clamp(colormap_green(x), 0.0, 1.0);
+    float b = clamp(colormap_blue(x), 0.0, 1.0);
+    return vec4(r, g, b, 1.0);
+}
 
 void main()
 {
@@ -24,14 +59,33 @@ void main()
         (1 - texture_scale_width) * 0.5  + texture_scale_width  * TexCoords.x,
         (1 - texture_scale_height) * 0.5 + texture_scale_height * TexCoords.y
     );
-    if (mapped_tex_coord.x < 0  || mapped_tex_coord.x >= 1  || mapped_tex_coord.y < 0 || mapped_tex_coord.y >= 1) {
-        gl_FragDepth = 0;
-        gl_FragColor = vec4(0.8, 0.8, 0.8, 1);
-        return;
-    }
     if (use_distortion) {
-        vec2 image_coord = (mapped_tex_coord - (camera_center_focus.xy / image_size) - vec2(0.5f)) /
-                            camera_center_focus.zw;
+        vec2 image_coord = mapped_tex_coord * image_size;
+        vec2 normalized_coord = ((image_coord - camera_center_focus.xy) / camera_center_focus.zw);
+        float r_2 = dot(normalized_coord, normalized_coord);
+        float radial_distort = (
+            1 + distortion_radial.x * r_2
+              + distortion_radial.y * r_2 * r_2
+              + distortion_radial.z * r_2 * r_2 * r_2
+        );
+        vec2 tangential_distort = vec2(
+            2 * distortion_tangential.x * normalized_coord.x * normalized_coord.y +
+                distortion_tangential.y * ((r_2) + 2 * (normalized_coord.x * normalized_coord.x)),
+            2 * distortion_tangential.y * normalized_coord.x * normalized_coord.y +
+                distortion_tangential.x * ((r_2) + 2 * (normalized_coord.y * normalized_coord.y))
+        );
+        vec2 distorted_normalized_coord = radial_distort * normalized_coord + tangential_distort;
+        vec2 distorted_coord = distorted_normalized_coord * camera_center_focus.zw + camera_center_focus.xy;
+        float r_2_diff= dot(distorted_normalized_coord, distorted_normalized_coord) - r_2;
+//        gl_FragColor = colormap(abs(r_2_diff) * 100 );
+//        gl_FragDepth = 1.0f;
+//        return;
+        mapped_tex_coord = distorted_coord / image_size;
+    }
+    if (mapped_tex_coord.x < 0  || mapped_tex_coord.x >= 1  || mapped_tex_coord.y < 0 || mapped_tex_coord.y >= 1) {
+        gl_FragDepth = 0.0f;
+        gl_FragColor = vec4(0, 0, 0, 1);
+        return;
     }
     vec4 tex_color = texture(texture_color_sampler, mapped_tex_coord).rgba;
     if (tex_color.a < 0.01) {

@@ -214,6 +214,7 @@ void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context
         vtkWin->Render();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glFlush();
         glViewport(original_viewport[0], original_viewport[1],
                    original_viewport[2], original_viewport[3]);
     }
@@ -227,6 +228,16 @@ void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context
     auto camera_focus = VTKCameraManager::get()->get_camera_focus(is_left ? VTKCameraManager::get()->K_left : VTKCameraManager::get()->K_right);
     texture_renderer->camera_center_focus = {camera_center.first, camera_center.second, camera_focus.first, camera_focus.second};
     texture_renderer->image_size = {VTKCameraManager::get()->image_width, VTKCameraManager::get()->image_height};
+    cv::Mat dist_coeff = (is_left ? VTKCameraManager::get()->dist_coeff_left : VTKCameraManager::get()->dist_coeff_right);
+    texture_renderer->distortion_tangential = {
+            dist_coeff.at<double>(0,2),
+            dist_coeff.at<double>(0,3)
+    };
+    texture_renderer->distortion_radial = {
+            dist_coeff.at<double>(0,0),
+            dist_coeff.at<double>(0,1),
+            dist_coeff.at<double>(0,4)
+    };
     texture_renderer->execute(stereoWindow, context, is_left);
     glDisable(GL_BLEND);
 }

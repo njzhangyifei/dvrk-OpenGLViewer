@@ -92,6 +92,7 @@ void VTKCameraManager::setup_camera_extrinsics
     cv::Mat m_translation = m_scaled_transform(cv::Rect(3, 0, 1, 3));
     // rotate translation vector by inverse rotation P = P'
     m_translation = m_rotation_inv * m_translation;
+//    m_translation = m_translation;
     m_translation *= -1; // save -P'
     // from here proceed as normal
     // focalPoint = P-viewPlaneNormal, viewPlaneNormal is rotation[2]
@@ -105,6 +106,7 @@ void VTKCameraManager::setup_camera_extrinsics
                        m_translation.at<double>(1) - m_view_plane_normal[1],
                        m_translation.at<double>(2) - m_view_plane_normal[2]);
     cam->SetViewUp(m_rotation.at<double>(1,0), m_rotation.at<double>(1,1), m_rotation.at<double>(1,2));
+    cam->SetClippingRange(20,200);
 }
 
 void VTKCameraManager::resize(int width, int height) {
@@ -123,6 +125,10 @@ bool VTKCameraManager::load_camera_calibration(const char *yaml_file) {
     fs["K2"] >> K_right;
     fs["D1"] >> dist_coeff_left;
     fs["D2"] >> dist_coeff_right;
+    K_left.at<double>(0,2)--;
+    K_left.at<double>(1,2)--;
+    K_right.at<double>(0,2)--;
+    K_right.at<double>(1,2)--;
     // load extrinsics
     cv::Vec3d T;
     cv::Mat R;
@@ -130,6 +136,7 @@ bool VTKCameraManager::load_camera_calibration(const char *yaml_file) {
     fs["R"] >> R;
     std::cerr << R << std::endl;
     R.copyTo(cam_left_to_cam_right(cv::Range(0,3),cv::Range(0,3)));
+    R = R.t();
     for (int i = 0; i < 3; i++){
         cam_left_to_cam_right.at<double>(i,3) = -T(i);
     }
@@ -149,4 +156,5 @@ std::pair<double, double> VTKCameraManager::get_camera_focus(const cv::Mat & m) 
 std::pair<double, double> VTKCameraManager::get_camera_center(const cv::Mat & m) {
     return {m.at<double>(0,2), m.at<double>(1,2)};
 }
+
 

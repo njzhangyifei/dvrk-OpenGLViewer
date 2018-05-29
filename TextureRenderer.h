@@ -39,8 +39,8 @@ public:
     GLuint texture_depth_id_left;
     GLuint texture_depth_id_right;
 
-    glm::vec3 radial_distortion;
-    glm::vec2 tangential_distortion;
+    glm::vec3 distortion_radial;
+    glm::vec2 distortion_tangential;
     glm::vec4 camera_center_focus;
     glm::vec2 image_size;
     float texture_scale_height;
