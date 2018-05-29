@@ -69,7 +69,7 @@ void VTKCameraManager::setup_camera_intrinsics
 void VTKCameraManager::setup_camera_extrinsics
         (const vtkSmartPointer<vtkCamera> & cam, const cv::Mat & world_to_cam) {
     cv::Mat m_scaled_mat = cv::Mat::eye(4, 4, CV_64FC1);
-    m_scaled_mat.at<double>(1, 1) = -m_scaled_mat.at<double>(1, 1);
+    m_scaled_mat.at<double>(1, 1) = m_scaled_mat.at<double>(1, 1);
     m_scaled_mat.at<double>(2, 2) = -m_scaled_mat.at<double>(2, 2);
     cv::Mat m_scaled_transform = cv::Mat::eye(4, 4, CV_64FC1);
     m_scaled_transform = m_scaled_mat * world_to_cam.inv();
@@ -97,9 +97,9 @@ void VTKCameraManager::setup_camera_extrinsics
     // from here proceed as normal
     // focalPoint = P-viewPlaneNormal, viewPlaneNormal is rotation[2]
     cv::Vec3d m_view_plane_normal;
-    m_view_plane_normal[0] = m_rotation.at<double>(2, 0);
-    m_view_plane_normal[1] = m_rotation.at<double>(2, 1);
-    m_view_plane_normal[2] = m_rotation.at<double>(2, 2);
+    m_view_plane_normal[0] = -m_rotation.at<double>(2, 0);
+    m_view_plane_normal[1] = -m_rotation.at<double>(2, 1);
+    m_view_plane_normal[2] = -m_rotation.at<double>(2, 2);
 
     cam->SetPosition(m_translation.at<double>(0), m_translation.at<double>(1), m_translation.at<double>(2));
     cam->SetFocalPoint(m_translation.at<double>(0) - m_view_plane_normal[0],

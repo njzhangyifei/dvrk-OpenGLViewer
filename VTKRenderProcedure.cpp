@@ -125,11 +125,27 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
                 vtkSmartPointer<vtkActor>::New();
         cubeActor->SetMapper(cubeMapper);
 
+        vtkSmartPointer<vtkVectorText> textSource =
+                vtkSmartPointer<vtkVectorText>::New();
+        textSource->SetText("Hello");
+        textSource->Update();
+
+        // Create a mapper and actor
+        vtkSmartPointer<vtkPolyDataMapper> mapper =
+                vtkSmartPointer<vtkPolyDataMapper>::New();
+        mapper->SetInputConnection(textSource->GetOutputPort());
+
+        vtkSmartPointer<vtkActor> text_actor =
+                vtkSmartPointer<vtkActor>::New();
+        text_actor->SetMapper(mapper);
+        text_actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+
         // Combine the sphere and cube into an assembly
         vtkSmartPointer<vtkAssembly> assembly =
                 vtkSmartPointer<vtkAssembly>::New();
         assembly->AddPart(sphereActor);
         assembly->AddPart(cubeActor);
+        assembly->AddPart(text_actor);
 
 
         // Apply a transform to the whole assembly
@@ -146,23 +162,9 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         collection->InitTraversal();
         for(vtkIdType i = 0; i < collection->GetNumberOfItems(); i++)
         {
-            vtkActor::SafeDownCast(collection->GetNextProp())->GetProperty()->SetOpacity(0.5);
+            vtkActor::SafeDownCast(collection->GetNextProp())->GetProperty()->SetOpacity(0.9);
         }
 
-        vtkSmartPointer<vtkVectorText> textSource =
-                vtkSmartPointer<vtkVectorText>::New();
-        textSource->SetText("Hello");
-        textSource->Update();
-
-//        // Create a mapper and actor
-//        vtkSmartPointer<vtkPolyDataMapper> mapper =
-//                vtkSmartPointer<vtkPolyDataMapper>::New();
-//        mapper->SetInputConnection(textSource->GetOutputPort());
-//
-//        vtkSmartPointer<vtkActor> text_actor =
-//                vtkSmartPointer<vtkActor>::New();
-//        text_actor->SetMapper(mapper);
-//        text_actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 
 
         //Create a renderer, render window, and interactor
@@ -176,7 +178,7 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
 //        renderer->GetActiveCamera()->SetViewUp(0, -1, 0);
 //        renderer->GetActiveCamera()->UseOffAxisProjectionOn();
 
-//        renderer->AddActor(text_actor);
+        renderer->AddActor(text_actor);
         vtkWin->AddRenderer(renderer);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -213,8 +215,9 @@ void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context
         vtkWin->Modified();
         vtkWin->Render();
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glFlush();
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(original_viewport[0], original_viewport[1],
                    original_viewport[2], original_viewport[3]);
     }
@@ -223,7 +226,7 @@ void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
     texture_renderer->texture_scale_width =  ((float)stereoWindow->width) / size[0];
-    texture_renderer->texture_scale_height = ((float)stereoWindow->height) / size[1];
+    texture_renderer->texture_scale_height = -((float)stereoWindow->height) / size[1];
     auto camera_center = VTKCameraManager::get()->get_camera_center(is_left ? VTKCameraManager::get()->K_left : VTKCameraManager::get()->K_right);
     auto camera_focus = VTKCameraManager::get()->get_camera_focus(is_left ? VTKCameraManager::get()->K_left : VTKCameraManager::get()->K_right);
     texture_renderer->camera_center_focus = {camera_center.first, camera_center.second, camera_focus.first, camera_focus.second};
@@ -254,9 +257,9 @@ void VTKRenderProcedure::imgui_callback(StereoWindow * stereoWindow, GLFWwindow 
         ImGui::Begin(typeid(this).name());
         transform->Identity();
         static float x, y, z;
-        ImGui::SliderFloat("X displacement", &x, -10.0f, 10.0f);
-        ImGui::SliderFloat("Y displacement", &y, -10.0f, 10.0f);
-        ImGui::SliderFloat("Z displacement", &z, -100.0f, 100.0f);
+        ImGui::SliderFloat("X displacement", &x, -100.0f, 100.0f);
+        ImGui::SliderFloat("Y displacement", &y, -100.0f, 100.0f);
+        ImGui::SliderFloat("Z displacement", &z, -200.0f, 200.0f);
         transform->Translate(x,y,z);
         double eye[3];
         VTKCameraManager::get()->camera_left->GetPosition(eye);
