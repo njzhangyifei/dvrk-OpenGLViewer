@@ -120,7 +120,10 @@ bool VTKCameraManager::load_camera_calibration(const char *yaml_file) {
     cv::FileStorage fs;
     std::cerr << yaml_file << std::endl;
     fs.open(yaml_file, cv::FileStorage::READ);
-    if (!fs.isOpened()) return false;
+    if (!fs.isOpened()) {
+        std::cerr << "Error opening camera calibration yaml: " << "[" << yaml_file << "]" << std::endl;
+        return false;
+    }
     fs["K1"] >> K_left;
     fs["K2"] >> K_right;
     fs["D1"] >> dist_coeff_left;
