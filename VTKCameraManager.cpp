@@ -106,7 +106,7 @@ void VTKCameraManager::setup_camera_extrinsics
                        m_translation.at<double>(1) - m_view_plane_normal[1],
                        m_translation.at<double>(2) - m_view_plane_normal[2]);
     cam->SetViewUp(m_rotation.at<double>(1,0), m_rotation.at<double>(1,1), m_rotation.at<double>(1,2));
-    cam->SetClippingRange(20,200);
+//    cam->SetClippingRange(20,200);
 }
 
 void VTKCameraManager::resize(int width, int height) {

@@ -11,12 +11,12 @@ ROSStereoImageProvider::ROSStereoImageProvider(ros::NodeHandlePtr nh_ptr) {
     this->nh_ptr = nh_ptr;
     image_transport = std::make_unique<image_transport::ImageTransport>(*this->nh_ptr);
     subscriber_left = std::make_unique<image_transport::CameraSubscriber>(
-//            image_transport->subscribeCamera("/stereo/master/left/image" , 1, &ROSStereoImageProvider::image_callback_left, this)
-        image_transport->subscribeCamera("/stereo/slave/left/image" , 1, &ROSStereoImageProvider::image_callback_left, this)
+            image_transport->subscribeCamera("/stereo/master/left/image" , 1, &ROSStereoImageProvider::image_callback_left, this)
+//        image_transport->subscribeCamera("/stereo/slave/left/image" , 1, &ROSStereoImageProvider::image_callback_left, this)
     );
     subscriber_right = std::make_unique<image_transport::CameraSubscriber>(
-//            image_transport->subscribeCamera("/stereo/master/right/image", 1, &ROSStereoImageProvider::image_callback_right, this)
-        image_transport->subscribeCamera("/stereo/slave/right/image", 1, &ROSStereoImageProvider::image_callback_right, this)
+            image_transport->subscribeCamera("/stereo/master/right/image", 1, &ROSStereoImageProvider::image_callback_right, this)
+//        image_transport->subscribeCamera("/stereo/slave/right/image", 1, &ROSStereoImageProvider::image_callback_right, this)
     );
 }
 

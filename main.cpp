@@ -40,7 +40,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 
 int main(int argc, char * argv [])
 {
-//    cv::namedWindow("test", CV_WINDOW_AUTOSIZE);
+    cv::namedWindow("test", CV_WINDOW_AUTOSIZE | CV_GUI_NORMAL);
 //    cv::imshow("test", img.image);
 //    cv::waitKey(0);
 

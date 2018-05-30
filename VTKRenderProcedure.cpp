@@ -267,6 +267,8 @@ void VTKRenderProcedure::imgui_callback(StereoWindow * stereoWindow, GLFWwindow 
         ImGui::SliderFloat("Z displacement", &z, -200.0f, 200.0f);
         transform->Translate(x,y,z);
         double eye[3];
+        transform->GetPosition(eye);
+        ImGui::Text("Object Position: [%.2f   %.2f   %.2f]", eye[0], eye[1], eye[2]);
         VTKCameraManager::get()->camera_left->GetPosition(eye);
         ImGui::Text("L Eye Position: [%.2f   %.2f   %.2f]", eye[0], eye[1], eye[2]);
         VTKCameraManager::get()->camera_right->GetPosition(eye);
