@@ -58,11 +58,12 @@ void ImageProvider::upload() {
             }
         }
         upload_texture();
-#ifdef __WITH_ROS
-#ifdef __ARCLAB
+//#ifdef __WITH_ROS
+//#ifdef __ARCLAB
+//        need_upload = false;
+//#endif
+//#endif
         need_upload = false;
-#endif
-#endif
     }
     image_lock.unlock();
 }

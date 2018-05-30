@@ -77,31 +77,22 @@ void main()
         vec2 distorted_normalized_coord = radial_distort * normalized_coord + tangential_distort;
         vec2 distorted_coord = distorted_normalized_coord * camera_center_focus.zw + camera_center_focus.xy;
         float r_2_diff= dot(distorted_normalized_coord, distorted_normalized_coord) - r_2;
-//        gl_FragColor = colormap(abs(r_2_diff) * 100 );
-//        gl_FragDepth = 1.0f;
-//        return;
         mapped_tex_coord = distorted_coord / image_size;
     }
+    float frag_z = gl_FragCoord.z;
     if (mapped_tex_coord.x < 0  || mapped_tex_coord.x >= 1  || mapped_tex_coord.y < 0 || mapped_tex_coord.y >= 1) {
-        gl_FragDepth = 0.0f;
-        gl_FragColor = vec4(0, 0, 0, 1);
-        return;
+        discard;
     }
     vec4 tex_color = texture(texture_color_sampler, mapped_tex_coord).rgba;
     if (tex_color.a < 0.01) {
         discard;
     }
-    float frag_z = gl_FragCoord.z;
     if (use_depth) {
         float texture_depth = texture(texture_depth_sampler, mapped_tex_coord).x;
         frag_z = texture_depth;
     }
-//    if (!use_depth) {
-//        if (frag_z < 0.81 && frag_z > 0.79) {
-//            // 0.8
-//            tex_color = vec4(1, 1, 0, 1);
-//        }
-//    }
+
     gl_FragDepth = frag_z;
     gl_FragColor = tex_color;
+//    gl_FragColor = colormap(frag_z);
 }

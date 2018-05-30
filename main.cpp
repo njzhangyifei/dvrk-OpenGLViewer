@@ -26,6 +26,7 @@
 #include "CameraTextureRenderer.h"
 #include "VTKRenderProcedure.h"
 #include "VTKCameraManager.h"
+#include "StaticStereoImageSource.h"
 
 static void error_callback(int error, const char* description)
 {
@@ -54,6 +55,9 @@ int main(int argc, char * argv [])
     spinner.start();
 
     std::unique_ptr<ROSStereoImageProvider> stereo_image_provider = std::make_unique<ROSStereoImageProvider>(nh);
+#else
+    std::unique_ptr<StaticStereoImageSource> static_stereo_image_source =
+            std::make_unique<StaticStereoImageSource>(100, "left.png", "right.png");
 #endif
 
     // monocular image provider
@@ -65,6 +69,9 @@ int main(int argc, char * argv [])
     // register to ROS stereo image
     stereo_image_provider->image_provider_left = image_provider_left;
     stereo_image_provider->image_provider_right = image_provider_right;
+#else
+    static_stereo_image_source->image_provider_left = image_provider_left;
+    static_stereo_image_source->image_provider_right = image_provider_right;
 #endif
 
     glfwInit();

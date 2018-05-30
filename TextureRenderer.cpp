@@ -86,7 +86,6 @@ void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, 
     }
     glUseProgram(shaderProgram);
     glActiveTexture(GL_TEXTURE0);
-
     if (is_left) {
         glBindTexture(GL_TEXTURE_2D, texture_id_left);
     } else {

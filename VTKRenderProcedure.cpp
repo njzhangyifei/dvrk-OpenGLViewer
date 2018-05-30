@@ -90,13 +90,15 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
             std::cerr << "ERROR configuring" << std::endl;
 
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
         vtkWin = vtkSmartPointer<vtkExternalOpenGLRenderWindowFixed>::New();
         vtkWin->Start();
-        vtkWin->SwapBuffersOff();
+//        vtkWin->SwapBuffersOff();
 //        vtkWin->StereoCapableWindowOn();
 //        vtkWin->SetStereoTypeToLeft();
 //        vtkWin->StereoRenderOn();
-        vtkWin->AlphaBitPlanesOn();
+//        vtkWin->AlphaBitPlanesOn();
 
 
         // Create a sphere
@@ -162,7 +164,7 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         collection->InitTraversal();
         for(vtkIdType i = 0; i < collection->GetNumberOfItems(); i++)
         {
-            vtkActor::SafeDownCast(collection->GetNextProp())->GetProperty()->SetOpacity(0.9);
+//            vtkActor::SafeDownCast(collection->GetNextProp())->GetProperty()->SetOpacity(0.9);
         }
 
 
@@ -178,10 +180,8 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
 //        renderer->GetActiveCamera()->SetViewUp(0, -1, 0);
 //        renderer->GetActiveCamera()->UseOffAxisProjectionOn();
 
-        renderer->AddActor(text_actor);
         vtkWin->AddRenderer(renderer);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         texture_renderer = std::make_unique<TextureRenderer>(true, true);
     }
     texture_renderer->setup(stereoWindow, context, is_left);
@@ -196,22 +196,26 @@ void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context
     int * pos = vtkWin->GetPosition();
     int * size = vtkWin->GetSize();
     if (is_left) {
+        glEnable(GL_DEPTH_TEST); // depth buffer fighting between the cone and the backround without this
+        glDepthFunc(GL_LEQUAL);
         int original_viewport[4];
         glGetIntegerv(GL_VIEWPORT, original_viewport);
         resize_textures();
         glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
 
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture_L, 0);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_L, 0);
-        glViewport(pos[0], pos[1], size[0], size[1]);
-        renderer->SetActiveCamera(VTKCameraManager::get()->camera_left);
-        vtkWin->Modified();
-        vtkWin->Render();
-
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture_R, 0);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_R, 0);
         glViewport(pos[0], pos[1], size[0], size[1]);
+        renderer->SetActiveCamera(VTKCameraManager::get()->camera_left);
+        renderer->Modified();
+        vtkWin->Modified();
+        vtkWin->Render();
+
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture_L, 0);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_L, 0);
+        glViewport(pos[0], pos[1], size[0], size[1]);
         renderer->SetActiveCamera(VTKCameraManager::get()->camera_right);
+        renderer->Modified();
         vtkWin->Modified();
         vtkWin->Render();
 
@@ -220,13 +224,14 @@ void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(original_viewport[0], original_viewport[1],
                    original_viewport[2], original_viewport[3]);
+        glDisable(GL_DEPTH_TEST);
     }
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
     texture_renderer->texture_scale_width =  ((float)stereoWindow->width) / size[0];
-    texture_renderer->texture_scale_height = -((float)stereoWindow->height) / size[1];
+    texture_renderer->texture_scale_height = ((float)stereoWindow->height) / size[1];
     auto camera_center = VTKCameraManager::get()->get_camera_center(is_left ? VTKCameraManager::get()->K_left : VTKCameraManager::get()->K_right);
     auto camera_focus = VTKCameraManager::get()->get_camera_focus(is_left ? VTKCameraManager::get()->K_left : VTKCameraManager::get()->K_right);
     texture_renderer->camera_center_focus = {camera_center.first, camera_center.second, camera_focus.first, camera_focus.second};
