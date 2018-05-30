@@ -45,7 +45,11 @@ int main(int argc, char * argv [])
 //    cv::waitKey(0);
 
     VTKCameraManager::get()->load_camera_calibration(
+#ifdef __ARCLAB
+            "/home/arclab/.ros/camera_info/camera_calibration.yaml"
+#else
             "camera_info/camera_calibration.yaml"
+#endif
     );
 
 #ifdef __WITH_ROS
