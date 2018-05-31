@@ -104,7 +104,7 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         // Create a sphere
         vtkSmartPointer<vtkSphereSource> sphereSource =
                 vtkSmartPointer<vtkSphereSource>::New();
-        sphereSource->SetRadius(1);
+        sphereSource->SetRadius(0.5);
         sphereSource->Update();
 
         vtkSmartPointer<vtkPolyDataMapper> sphereMapper =
@@ -206,7 +206,7 @@ void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture_R, 0);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_R, 0);
         glViewport(pos[0], pos[1], size[0], size[1]);
-        renderer->SetActiveCamera(VTKCameraManager::get()->camera_left);
+        renderer->SetActiveCamera(VTKCameraManager::get()->camera_right);
         renderer->Modified();
         vtkWin->Modified();
         vtkWin->Render();
@@ -214,7 +214,7 @@ void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture_L, 0);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_L, 0);
         glViewport(pos[0], pos[1], size[0], size[1]);
-        renderer->SetActiveCamera(VTKCameraManager::get()->camera_right);
+        renderer->SetActiveCamera(VTKCameraManager::get()->camera_left);
         renderer->Modified();
         vtkWin->Modified();
         vtkWin->Render();
@@ -231,7 +231,7 @@ void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
     texture_renderer->texture_scale_width =  ((float)stereoWindow->width) / size[0];
-    texture_renderer->texture_scale_height = ((float)stereoWindow->height) / size[1];
+    texture_renderer->texture_scale_height = - ((float)stereoWindow->height) / size[1];
     auto camera_center = VTKCameraManager::get()->get_camera_center(is_left ? VTKCameraManager::get()->K_left : VTKCameraManager::get()->K_right);
     auto camera_focus = VTKCameraManager::get()->get_camera_focus(is_left ? VTKCameraManager::get()->K_left : VTKCameraManager::get()->K_right);
     texture_renderer->camera_center_focus = {camera_center.first, camera_center.second, camera_focus.first, camera_focus.second};
@@ -261,7 +261,10 @@ void VTKRenderProcedure::imgui_callback(StereoWindow * stereoWindow, GLFWwindow 
     {
         ImGui::Begin(typeid(this).name());
         transform->Identity();
-        static float x, y, z;
+//        static float x, y, z;
+        static float x = -12.10137070794938;
+        static float y = -12.92719385577567;
+        static float z = 62.61265901598254;
         ImGui::SliderFloat("X displacement", &x, -100.0f, 100.0f);
         ImGui::SliderFloat("Y displacement", &y, -100.0f, 100.0f);
         ImGui::SliderFloat("Z displacement", &z, -200.0f, 200.0f);
@@ -273,6 +276,7 @@ void VTKRenderProcedure::imgui_callback(StereoWindow * stereoWindow, GLFWwindow 
         ImGui::Text("L Eye Position: [%.2f   %.2f   %.2f]", eye[0], eye[1], eye[2]);
         VTKCameraManager::get()->camera_right->GetPosition(eye);
         ImGui::Text("R Eye Position: [%.2f   %.2f   %.2f]", eye[0], eye[1], eye[2]);
+        ImGui::Checkbox("Distortion", &texture_renderer->use_distortion);
         ImGui::End();
     }
 #endif

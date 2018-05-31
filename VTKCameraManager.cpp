@@ -57,12 +57,19 @@ void VTKCameraManager::setup_camera_intrinsics(const vtkSmartPointer<vtkCamera> 
 
 void VTKCameraManager::setup_camera_intrinsics
         (const vtkSmartPointer<vtkCamera> & cam, double fx, double fy, double px, double py) {
-    double viewAngle = 2.0 * atan((image_height / 2.0 ) / fy ) * 180.0 / vtkMath::Pi();
+//    double viewAngle = 2.0 * atan((image_height / 2.0 ) / fy ) * 180.0 / vtkMath::Pi();
+//    double cx = image_width - px;
+//    double cy = py;
+//    double win_center_x = cx / ( (image_width-1)/2) - 1 ;
+//    double win_center_y = cy / ( (image_height-1)/2) - 1;
+//    [-12.10137070794938;
+//    -12.92719385577567;
+//    62.61265901598254]
+    double win_center_x =  -2.0 * (px - image_width / 2.0) / image_width;
+    double win_center_y =  2.0 * (py - image_height / 2.0) / image_height;
+
+    double viewAngle = 180.0 / vtkMath::Pi() * 2.0 * atan2(image_height/ 2.0, fy);
     cam->SetViewAngle(viewAngle);
-    double cx = image_width - px;
-    double cy = py;
-    double win_center_x = cx / ( (image_width-1)/2) - 1 ;
-    double win_center_y = cy / ( (image_height-1)/2) - 1;
     cam->SetWindowCenter(win_center_x, win_center_y);
 }
 
@@ -128,10 +135,10 @@ bool VTKCameraManager::load_camera_calibration(const char *yaml_file) {
     fs["K2"] >> K_right;
     fs["D1"] >> dist_coeff_left;
     fs["D2"] >> dist_coeff_right;
-    K_left.at<double>(0,2)--;
-    K_left.at<double>(1,2)--;
-    K_right.at<double>(0,2)--;
-    K_right.at<double>(1,2)--;
+//    K_left.at<double>(0,2)--;
+//    K_left.at<double>(1,2)--;
+//    K_right.at<double>(0,2)--;
+//    K_right.at<double>(1,2)--;
     // load extrinsics
     cv::Vec3d T;
     cv::Mat R;
@@ -146,8 +153,14 @@ bool VTKCameraManager::load_camera_calibration(const char *yaml_file) {
     world_to_cam_right = world_to_cam_left * cam_left_to_cam_right;
     setup_camera_intrinsics(camera_left, K_left);
     setup_camera_intrinsics(camera_right, K_right);
-    setup_camera_extrinsics(camera_left, world_to_cam_left);
-    setup_camera_extrinsics(camera_right, world_to_cam_right);
+    camera_left->SetFocalPoint(0, 0, 1);
+    camera_left->SetPosition(0, 0, 0);
+    camera_left->SetViewUp(0, -1, 0);
+    camera_right->SetFocalPoint(0, 0, 1);
+    camera_right->SetPosition(0, 0, 0);
+    camera_right->SetViewUp(0, -1, 0);
+//    setup_camera_extrinsics(camera_left, world_to_cam_left);
+//    setup_camera_extrinsics(camera_right, world_to_cam_right);
     fs.release();
     return true;
 }

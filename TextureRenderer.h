@@ -18,8 +18,8 @@ protected:
     GLuint VAO_right;
     GLfloat * quadVertices;
     static GLuint shaderProgram;
+
     bool use_depth;
-    bool use_distortion;
 
     std::string vertex_shader;
     std::string fragment_shader;
@@ -32,6 +32,8 @@ public:
     void execute(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left) override;
     void setup(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left) override;
     void teardown(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left) override;
+
+    bool use_distortion;
 
     GLuint texture_id_left;
     GLuint texture_id_right;
