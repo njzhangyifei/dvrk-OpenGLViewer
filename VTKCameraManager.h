@@ -6,6 +6,7 @@
 #define DVRK_OPENGLVIEWER_VTKCAMERAMANAGER_H
 
 
+#include <vtk_glew.h>
 #include <opencv2/opencv.hpp>
 #include <vtkCamera.h>
 
@@ -15,8 +16,10 @@ private:
     VTKCameraManager();
     ~VTKCameraManager();
     static VTKCameraManager * instance;
-    void setup_camera_intrinsics(const vtkSmartPointer<vtkCamera> & cam, double fx, double fy, double px, double py);
     void setup_camera_extrinsics(const vtkSmartPointer<vtkCamera> & cam, const cv::Mat &world_to_cam);
+    void setup_camera_intrinsics(const vtkSmartPointer<vtkCamera> & cam, double fx, double fy, double px, double py);
+    void setup_camera_intrinsics(const vtkSmartPointer<vtkCamera> &cam, const cv::Mat &K);
+    bool create_distortion_lookup(GLuint * distortion, const cv::Mat & dist_coeff, const cv::Mat & intrinsics);
 
 public:
     void finalize();
@@ -36,11 +39,13 @@ public:
     cv::Mat dist_coeff_left;
     cv::Mat dist_coeff_right;
 
+    GLuint distortion_texture_left;
+    GLuint distortion_texture_right;
+
     vtkSmartPointer<vtkCamera> camera_left;
     vtkSmartPointer<vtkCamera> camera_right;
 
     bool load_camera_calibration(const char * yaml_file = nullptr);
-    void setup_camera_intrinsics(const vtkSmartPointer<vtkCamera> &cam, const cv::Mat &K);
     std::pair<double, double> get_camera_center(const cv::Mat & m);
     std::pair<double, double> get_camera_focus(const cv::Mat & m);
 };

@@ -232,20 +232,9 @@ void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context
     glBlendEquation(GL_FUNC_ADD);
     texture_renderer->texture_scale_width =  ((float)stereoWindow->width) / size[0];
     texture_renderer->texture_scale_height = - ((float)stereoWindow->height) / size[1];
-    auto camera_center = VTKCameraManager::get()->get_camera_center(is_left ? VTKCameraManager::get()->K_left : VTKCameraManager::get()->K_right);
-    auto camera_focus = VTKCameraManager::get()->get_camera_focus(is_left ? VTKCameraManager::get()->K_left : VTKCameraManager::get()->K_right);
-    texture_renderer->camera_center_focus = {camera_center.first, camera_center.second, camera_focus.first, camera_focus.second};
     texture_renderer->image_size = {VTKCameraManager::get()->image_width, VTKCameraManager::get()->image_height};
-    cv::Mat dist_coeff = (is_left ? VTKCameraManager::get()->dist_coeff_left : VTKCameraManager::get()->dist_coeff_right);
-    texture_renderer->distortion_tangential = {
-            dist_coeff.at<double>(0,2),
-            dist_coeff.at<double>(0,3)
-    };
-    texture_renderer->distortion_radial = {
-            dist_coeff.at<double>(0,0),
-            dist_coeff.at<double>(0,1),
-            dist_coeff.at<double>(0,4)
-    };
+    texture_renderer->distortion_texture_left = VTKCameraManager::get()->distortion_texture_left;
+    texture_renderer->distortion_texture_right = VTKCameraManager::get()->distortion_texture_right;
     texture_renderer->execute(stereoWindow, context, is_left);
     glDisable(GL_BLEND);
 }
@@ -262,20 +251,39 @@ void VTKRenderProcedure::imgui_callback(StereoWindow * stereoWindow, GLFWwindow 
         ImGui::Begin(typeid(this).name());
         transform->Identity();
 //        static float x, y, z;
-        static float x = -12.10137070794938;
-        static float y = -12.92719385577567;
-        static float z = 62.61265901598254;
-        ImGui::SliderFloat("X displacement", &x, -100.0f, 100.0f);
-        ImGui::SliderFloat("Y displacement", &y, -100.0f, 100.0f);
-        ImGui::SliderFloat("Z displacement", &z, -200.0f, 200.0f);
-        transform->Translate(x,y,z);
+
+
+//        double matrix[16] = {-0.08123795710146535, -0.9868970103563299, 0.1394083400507964, -12.01529398311662,
+//        0.9740620293046913, -0.1082507917941153, -0.1987081506702071, -12.87712716664884,
+//        0.2111955430230645, 0.1196497263920194, 0.9700929778023898, 62.40068013946806,
+//        0, 0, 0, 1};
+        double matrix[16] = {-0.08139533854063273, -0.9869691150707346, 0.1388047721094156, -29.53294164007212,
+        0.9739215054909224, -0.1083539240752634, -0.1993397308109627, -31.64446475217511,
+        0.2117821994553621, 0.1189596277481696, 0.9700499507550454, 152.8550029792795,
+        0, 0, 0, 1};
+//
+        transform->SetMatrix(matrix);
+
+//        static float x = -29.53294164007212;
+//        static float y = -31.64446475217511;
+//        static float z = 152.8550029792795;
+//        ImGui::SliderFloat("X displacement", &x, -100.0f, 100.0f);
+//        ImGui::SliderFloat("Y displacement", &y, -100.0f, 100.0f);
+//        ImGui::SliderFloat("Z displacement", &z, -200.0f, 200.0f);
+//        transform->Translate(x,y,z);
+
+
         double eye[3];
         transform->GetPosition(eye);
         ImGui::Text("Object Position: [%.2f   %.2f   %.2f]", eye[0], eye[1], eye[2]);
         VTKCameraManager::get()->camera_left->GetPosition(eye);
         ImGui::Text("L Eye Position: [%.2f   %.2f   %.2f]", eye[0], eye[1], eye[2]);
+        VTKCameraManager::get()->camera_left->GetFocalPoint(eye);
+        ImGui::Text("L Focal Point : [%.2f   %.2f   %.2f]", eye[0], eye[1], eye[2]);
         VTKCameraManager::get()->camera_right->GetPosition(eye);
         ImGui::Text("R Eye Position: [%.2f   %.2f   %.2f]", eye[0], eye[1], eye[2]);
+        VTKCameraManager::get()->camera_right->GetFocalPoint(eye);
+        ImGui::Text("R Focal Point : [%.2f   %.2f   %.2f]", eye[0], eye[1], eye[2]);
         ImGui::Checkbox("Distortion", &texture_renderer->use_distortion);
         ImGui::End();
     }

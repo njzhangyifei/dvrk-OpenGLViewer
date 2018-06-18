@@ -109,9 +109,13 @@ void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, 
     }
     if (use_distortion){
         glUniform2fv(glGetUniformLocation(shaderProgram, "image_size"), 1, &image_size[0]);
-        glUniform4fv(glGetUniformLocation(shaderProgram, "camera_center_focus"), 1, &camera_center_focus[0]);
-        glUniform3fv(glGetUniformLocation(shaderProgram, "distortion_radial"), 1, &distortion_radial[0]);
-        glUniform2fv(glGetUniformLocation(shaderProgram, "distortion_tangential"), 1, &distortion_tangential[0]);
+        glActiveTexture(GL_TEXTURE2);
+        if (is_left) {
+            glBindTexture(GL_TEXTURE_2D, distortion_texture_left);
+        } else {
+            glBindTexture(GL_TEXTURE_2D, distortion_texture_right);
+        }
+        glUniform1i(glGetUniformLocation(shaderProgram,  "texture_distortion_sampler"), 2);
     }
     if (is_left) {
         glBindVertexArray(VAO_left);
@@ -125,6 +129,10 @@ void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, 
     glBindTexture(GL_TEXTURE_2D, 0);
     if (use_depth) {
         glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+    if (use_distortion){
+        glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     glActiveTexture(GL_TEXTURE0);
