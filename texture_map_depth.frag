@@ -65,6 +65,11 @@ void main()
         mapped_tex_coord = distorted_target.xy;
     }
 
+    mapped_tex_coord = vec2(
+        (1 - texture_scale_width) * 0.5  + texture_scale_width  * mapped_tex_coord.x,
+        (1 - texture_scale_height) * 0.5 + texture_scale_height * mapped_tex_coord.y
+    );
+
     float frag_z = gl_FragCoord.z;
     if (mapped_tex_coord.x < 0  || mapped_tex_coord.x >= 1  || mapped_tex_coord.y < 0 || mapped_tex_coord.y >= 1) {
         discard;
@@ -73,11 +78,11 @@ void main()
     if (tex_color.a < 0.01) {
         discard;
     }
+    tex_color.a = 0.6;
     if (use_depth) {
         float texture_depth = texture(texture_depth_sampler, mapped_tex_coord).x;
         frag_z = texture_depth;
     }
-
     gl_FragDepth = frag_z;
     gl_FragColor = tex_color;
 //    gl_FragColor = colormap(frag_z);

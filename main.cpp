@@ -44,6 +44,19 @@ int main(int argc, char * argv [])
 //    cv::imshow("test", img.image);
 //    cv::waitKey(0);
 
+
+#ifdef __WITH_ROS
+    ros::init(argc, argv, "dvrk_OpenGLViewer");
+    ros::NodeHandlePtr nh(new ros::NodeHandle());
+    ros::AsyncSpinner spinner(2);
+    spinner.start();
+
+    std::unique_ptr<ROSStereoImageProvider> stereo_image_provider = std::make_unique<ROSStereoImageProvider>(nh);
+#else
+    std::unique_ptr<StaticStereoImageSource> static_stereo_image_source =
+            std::make_unique<StaticStereoImageSource>(100, "left.png", "right.png");
+#endif
+
     glfwInit();
     glfwSetErrorCallback(&error_callback);
 
@@ -69,6 +82,8 @@ int main(int argc, char * argv [])
                   << std::endl;
     }
 #endif
+
+
     std::unique_ptr<StereoWindow> stereo_window = std::make_unique<StereoWindow>(left_monitor, right_monitor);
 
 
@@ -79,19 +94,6 @@ int main(int argc, char * argv [])
             "camera_info/camera_calibration.yaml"
 #endif
     );
-
-#ifdef __WITH_ROS
-    ros::init(argc, argv, "dvrk_OpenGLViewer");
-    ros::NodeHandlePtr nh(new ros::NodeHandle());
-    ros::AsyncSpinner spinner(2);
-    spinner.start();
-
-    std::unique_ptr<ROSStereoImageProvider> stereo_image_provider = std::make_unique<ROSStereoImageProvider>(nh);
-#else
-    std::unique_ptr<StaticStereoImageSource> static_stereo_image_source =
-            std::make_unique<StaticStereoImageSource>(100, "left.png", "right.png");
-#endif
-
     // monocular image provider
     std::shared_ptr<ImageProvider> image_provider_left = std::make_shared<ImageProvider>(1920, 1080);
     std::shared_ptr<ImageProvider> image_provider_right = std::make_shared<ImageProvider>(1920, 1080);

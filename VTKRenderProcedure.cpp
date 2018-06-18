@@ -23,6 +23,8 @@
 #include "vtkExternalOpenGLRenderWindowFixed.h"
 #include "TextureRenderer.h"
 #include "VTKCameraManager.h"
+#include <vtkAxesActor.h>
+#include "CameraTextureRenderer.h"
 
 #ifdef __WITH_IMGUI
 #include <imgui.h>
@@ -113,10 +115,16 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         vtkSmartPointer<vtkActor> sphereActor =
                 vtkSmartPointer<vtkActor>::New();
         sphereActor->SetMapper(sphereMapper);
+
         // Create a cube
         vtkSmartPointer<vtkCubeSource> cubeSource =
                 vtkSmartPointer<vtkCubeSource>::New();
-        cubeSource->SetCenter(5.0, 0.0, 0.0);
+        cubeSource->SetXLength(4 * 2.45);
+        cubeSource->SetYLength(4 * 2.45);
+        cubeSource->SetZLength(4 * 2.45);
+        cubeSource->SetCenter(3.0 * 2.45,
+                              3.0 * 2.45,
+                              2 * 2.45);
         cubeSource->Update();
 
         vtkSmartPointer<vtkPolyDataMapper> cubeMapper =
@@ -126,29 +134,38 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         vtkSmartPointer<vtkActor> cubeActor =
                 vtkSmartPointer<vtkActor>::New();
         cubeActor->SetMapper(cubeMapper);
+        vtkSmartPointer<vtkTransform> cubeTransform = vtkSmartPointer<vtkTransform>::New();
+        cubeTransform->Identity();
+        cubeTransform->RotateX(180);
+        cubeTransform->RotateZ(-90);
+        cubeActor->SetUserTransform(cubeTransform);
 
-        vtkSmartPointer<vtkVectorText> textSource =
-                vtkSmartPointer<vtkVectorText>::New();
-        textSource->SetText("Hello");
-        textSource->Update();
+        vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
+        axes->SetTotalLength(3,3,3);
 
-        // Create a mapper and actor
-        vtkSmartPointer<vtkPolyDataMapper> mapper =
-                vtkSmartPointer<vtkPolyDataMapper>::New();
-        mapper->SetInputConnection(textSource->GetOutputPort());
 
-        vtkSmartPointer<vtkActor> text_actor =
-                vtkSmartPointer<vtkActor>::New();
-        text_actor->SetMapper(mapper);
-        text_actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+//        vtkSmartPointer<vtkVectorText> textSource =
+//                vtkSmartPointer<vtkVectorText>::New();
+//        textSource->SetText("Hello");
+//        textSource->Update();
+//
+//        // Create a mapper and actor
+//        vtkSmartPointer<vtkPolyDataMapper> mapper =
+//                vtkSmartPointer<vtkPolyDataMapper>::New();
+//        mapper->SetInputConnection(textSource->GetOutputPort());
+//
+//        vtkSmartPointer<vtkActor> text_actor =
+//                vtkSmartPointer<vtkActor>::New();
+//        text_actor->SetMapper(mapper);
+//        text_actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 
         // Combine the sphere and cube into an assembly
         vtkSmartPointer<vtkAssembly> assembly =
                 vtkSmartPointer<vtkAssembly>::New();
         assembly->AddPart(sphereActor);
         assembly->AddPart(cubeActor);
-        assembly->AddPart(text_actor);
-
+        assembly->AddPart(axes);
+//        assembly->AddPart(text_actor);
 
         // Apply a transform to the whole assembly
         transform = vtkSmartPointer<vtkTransform>::New();
@@ -168,7 +185,6 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         }
 
 
-
         //Create a renderer, render window, and interactor
         renderer = vtkSmartPointer<vtkRenderer>::New();
         renderer->UseDepthPeelingOff();
@@ -176,9 +192,6 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
         renderer->SetBackgroundAlpha(0.0);
         renderer->SetBackground(0.275, 0.510, 0.706);
         renderer->AddActor(assembly);
-//        renderer->ResetCamera();
-//        renderer->GetActiveCamera()->SetViewUp(0, -1, 0);
-//        renderer->GetActiveCamera()->UseOffAxisProjectionOn();
 
         vtkWin->AddRenderer(renderer);
 
@@ -193,6 +206,13 @@ void VTKRenderProcedure::setup(StereoWindow *stereoWindow, GLFWwindow *context, 
 }
 
 void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) {
+
+    if (!obj.empty()){
+        transform->SetMatrix((double *)obj.data);
+    }
+
+
+    // setup
     int * pos = vtkWin->GetPosition();
     int * size = vtkWin->GetSize();
     if (is_left) {
@@ -230,8 +250,8 @@ void VTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
-    texture_renderer->texture_scale_width =  ((float)stereoWindow->width) / size[0];
-    texture_renderer->texture_scale_height = - ((float)stereoWindow->height) / size[1];
+    texture_renderer->texture_scale_width = ((float)stereoWindow->width) / size[0];
+    texture_renderer->texture_scale_height = ((float)stereoWindow->height) / size[1];
     texture_renderer->image_size = {VTKCameraManager::get()->image_width, VTKCameraManager::get()->image_height};
     texture_renderer->distortion_texture_left = VTKCameraManager::get()->distortion_texture_left;
     texture_renderer->distortion_texture_right = VTKCameraManager::get()->distortion_texture_right;
@@ -249,7 +269,7 @@ void VTKRenderProcedure::imgui_callback(StereoWindow * stereoWindow, GLFWwindow 
     if (!is_left) return;
     {
         ImGui::Begin(typeid(this).name());
-        transform->Identity();
+//        transform->Identity();
 //        static float x, y, z;
 
 
@@ -257,12 +277,15 @@ void VTKRenderProcedure::imgui_callback(StereoWindow * stereoWindow, GLFWwindow 
 //        0.9740620293046913, -0.1082507917941153, -0.1987081506702071, -12.87712716664884,
 //        0.2111955430230645, 0.1196497263920194, 0.9700929778023898, 62.40068013946806,
 //        0, 0, 0, 1};
-        double matrix[16] = {-0.08139533854063273, -0.9869691150707346, 0.1388047721094156, -29.53294164007212,
-        0.9739215054909224, -0.1083539240752634, -0.1993397308109627, -31.64446475217511,
-        0.2117821994553621, 0.1189596277481696, 0.9700499507550454, 152.8550029792795,
-        0, 0, 0, 1};
+
+
+//        double matrix[16] = {-0.08139533854063273, -0.9869691150707346, 0.1388047721094156, -29.53294164007212,
+//        0.9739215054909224, -0.1083539240752634, -0.1993397308109627, -31.64446475217511,
+//        0.2117821994553621, 0.1189596277481696, 0.9700499507550454, 152.8550029792795,
+//        0, 0, 0, 1};
 //
-        transform->SetMatrix(matrix);
+//
+//        transform->SetMatrix(matrix);
 
 //        static float x = -29.53294164007212;
 //        static float y = -31.64446475217511;

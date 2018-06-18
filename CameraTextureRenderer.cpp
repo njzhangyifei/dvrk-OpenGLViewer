@@ -2,8 +2,11 @@
 // Created by arclab on 4/20/18.
 //
 
+
 #include "CameraTextureRenderer.h"
 #include "VTKCameraManager.h"
+
+cv::Mat obj;
 
 
 static void meshgrid(const cv::Mat &xgv, const cv::Mat &ygv,
@@ -32,13 +35,13 @@ void CameraTextureRenderer::execute(StereoWindow *stereoWindow, GLFWwindow *cont
     if (is_left) {
         static int i = 0;
         i ++;
-        if (i >= 100) {
+        if (i >= 30) {
             cv::Mat input = image_provider_left->image.clone();
             cv::Mat gray;
             cv::cvtColor(input, gray, cv::COLOR_RGB2GRAY);
-            cv::threshold(gray, gray, 0, 255,  cv::THRESH_OTSU);
+//            cv::threshold(gray, gray, 0, 255,  cv::THRESH_OTSU);
             std::vector<cv::Point2f> corners; //this will be filled by the detected corners
-            bool found = cv::findChessboardCorners(gray, cv::Size(9,7), corners, 0);
+            bool found = cv::findChessboardCorners(gray, cv::Size(9,7), corners, cv::CALIB_CB_ADAPTIVE_THRESH);
             std::vector<cv::Point3f> objp;
             for (int i = 0; i < 7; i ++) {
                 for (int j = 0; j < 9; j ++) {
@@ -47,43 +50,29 @@ void CameraTextureRenderer::execute(StereoWindow *stereoWindow, GLFWwindow *cont
             }
             std::cerr << found << std::endl;
             if (found){
-//                auto criteria = cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 5, 0.001);
-//                cv::cornerSubPix(gray, corners, cv::Size(11,11), cv::Size(-1,-1), criteria );
+                auto criteria = cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 5, 0.001);
+                cv::cornerSubPix(gray, corners, cv::Size(11,11), cv::Size(-1,-1), criteria );
                 cv::Mat rvec, tvec;
                 cv::solvePnP(objp, corners, VTKCameraManager::get()->K_left, VTKCameraManager::get()->dist_coeff_left, rvec, tvec);
                 std::vector<cv::Point3f> targets;
                 std::vector<cv::Point2f> image_pts;
                 targets.push_back(cv::Point3f(0, 0, 0));
-//                cv::Mat rvec = cv::Mat({0.0f, 0.0f, 0.0f});
-//                cv::Mat tvec = cv::Mat({-12.10137070794938f, -12.92719385577567f, 62.61265901598254f});
-//                cv::Mat dist_coeff = cv::Mat({0.0f, 0.0f, 0.0f, 0.0f, 0.0f});
                 cv::projectPoints(targets,
                                   rvec, tvec,
                                   VTKCameraManager::get()->K_left,
                                   VTKCameraManager::get()->dist_coeff_left,
-//                                  dist_coeff,
                                   image_pts);
-                cv::circle(input, image_pts[0], 5, cv::Scalar(0, 255, 0));
-                cv::imshow("test", input);
-                cv::waitKey(1);
-                std::cerr << tvec << std::endl;
-//
+//                cv::circle(input, image_pts[0], 5, cv::Scalar(0, 255, 0));
+//                cv::imshow("test", input);
+//                cv::waitKey(1);
+
                 cv::Mat R;
                 cv::Rodrigues(rvec, R); // R is 3x3
-//
-//                R = R.t();  // rotation of inverse
-//                tvec = -R * tvec; // translation of inverse
-//
                 cv::Mat T = cv::Mat::eye(4, 4, R.type()); // T is 4x4
                 T( cv::Range(0,3), cv::Range(0,3) ) = R * 1; // copies R into T
                 T( cv::Range(0,3), cv::Range(3,4) ) = tvec * 1; // copies tvec into T
-                std::cerr << T << std::endl;
 
-//                std::cerr << T.inv() << std::endl;
-
-
-//                std::cerr << rvec << std::endl;
-//                std::cerr << tvec << std::endl;
+                obj = T;
             }
             i = 0;
         }

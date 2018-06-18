@@ -5,11 +5,12 @@
 #ifndef DVRK_OPENGLVIEWER_CAMERATEXTURERENDERER_H
 #define DVRK_OPENGLVIEWER_CAMERATEXTURERENDERER_H
 
-
 #include <boost/shared_ptr.hpp>
 #include "TextureRenderer.h"
 #include "ImageProvider.h"
 #include "IImageAligned.h"
+
+extern cv::Mat obj;
 
 class CameraTextureRenderer : public TextureRenderer{
 public:
