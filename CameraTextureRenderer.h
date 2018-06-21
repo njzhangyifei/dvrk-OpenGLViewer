@@ -10,6 +10,7 @@
 #include "ImageProvider.h"
 #include "IImageAligned.h"
 
+
 extern cv::Mat obj;
 
 class CameraTextureRenderer : public TextureRenderer{

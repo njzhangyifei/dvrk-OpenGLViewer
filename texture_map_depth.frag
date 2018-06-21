@@ -12,9 +12,11 @@ uniform sampler2D texture_distortion_sampler;
 
 uniform bool use_depth;
 uniform bool use_distortion;
+uniform bool use_transparency;
 
 uniform vec2 image_size;
 
+uniform float transparency;
 uniform float texture_scale_height;
 uniform float texture_scale_width;
 
@@ -78,12 +80,13 @@ void main()
     if (tex_color.a < 0.01) {
         discard;
     }
-    tex_color.a = 0.6;
+    if (use_transparency) {
+        tex_color.a = tex_color.a * transparency;
+    }
     if (use_depth) {
         float texture_depth = texture(texture_depth_sampler, mapped_tex_coord).x;
         frag_z = texture_depth;
     }
     gl_FragDepth = frag_z;
     gl_FragColor = tex_color;
-//    gl_FragColor = colormap(frag_z);
 }

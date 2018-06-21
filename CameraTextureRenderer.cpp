@@ -6,7 +6,13 @@
 #include "CameraTextureRenderer.h"
 #include "VTKCameraManager.h"
 
+
+/////////////////////////////////////
+/////////////////////////////////////
+// FOR DEMO
 cv::Mat obj;
+/////////////////////////////////////
+/////////////////////////////////////
 
 
 static void meshgrid(const cv::Mat &xgv, const cv::Mat &ygv,
@@ -32,8 +38,23 @@ void CameraTextureRenderer::execute(StereoWindow *stereoWindow, GLFWwindow *cont
         this->texture_scale_height = ((float)stereoWindow->height) / image_provider_right->height;
         this->texture_scale_width =  ((float)stereoWindow->width) / image_provider_right->width;
     }
+
+    /////////////////////////////////////
+    /////////////////////////////////////
+    /////////////////////////////////////
+    // Experimental code, FOR DEMO ONLY
+    //
+    //
+    // EXTEREMELY SLOW PERFORMANCE IF ENABLED!!!
+    // PLEASE DO IMAGE PROCESSING IN ANOTHER THREAD (that subscribes image provider)
+    //
+    //
+    // 1. detect checkerboard (9x7) from image
+    // 2. convert r_vec and t_vec into homogeneous tf matrix
+    // 3. save matrix to GLOBAL var (extern-ed) 'obj'
+    //
     if (is_left) {
-        static int i = 0;
+        static int i = 100;
         i ++;
         if (i >= 30) {
             cv::Mat input = image_provider_left->image.clone();
@@ -77,6 +98,11 @@ void CameraTextureRenderer::execute(StereoWindow *stereoWindow, GLFWwindow *cont
             i = 0;
         }
     }
+    /////////////////////////////////////
+    /////////////////////////////////////
+    /////////////////////////////////////
+
+
     TextureRenderer::execute(stereoWindow, context, is_left);
 }
 

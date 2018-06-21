@@ -33,7 +33,10 @@ public:
     void setup(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left) override;
     void teardown(StereoWindow * stereoWindow, GLFWwindow * context, bool is_left) override;
 
+    bool use_transparency;
     bool use_distortion;
+
+    GLfloat transparency;
 
     GLuint texture_id_left;
     GLuint texture_id_right;

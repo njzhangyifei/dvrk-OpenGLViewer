@@ -101,6 +101,7 @@ void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, 
     }
     glUniform1i(glGetUniformLocation(shaderProgram, "use_depth"),             (this->use_depth) ? 1 : 0);
     glUniform1i(glGetUniformLocation(shaderProgram, "use_distortion"),        (this->use_distortion) ? 1 : 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "use_transparency"),      (this->use_transparency) ? 1 : 0);
     glUniform1f(glGetUniformLocation(shaderProgram, "texture_scale_height"),  texture_scale_height);
     glUniform1f(glGetUniformLocation(shaderProgram, "texture_scale_width"),   texture_scale_width);
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_color_sampler"), 0);
@@ -116,6 +117,9 @@ void TextureRenderer::execute(StereoWindow * stereoWindow, GLFWwindow *context, 
             glBindTexture(GL_TEXTURE_2D, distortion_texture_right);
         }
         glUniform1i(glGetUniformLocation(shaderProgram,  "texture_distortion_sampler"), 2);
+    }
+    if (use_transparency){
+        glUniform1f(glGetUniformLocation(shaderProgram, "transparency"), transparency);
     }
     if (is_left) {
         glBindVertexArray(VAO_left);

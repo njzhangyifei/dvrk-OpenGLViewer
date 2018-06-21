@@ -201,8 +201,8 @@ glm::vec2 distort(const glm::vec2 & in,
     glm::vec2 image_coord = in * image_size;
     glm::vec2 normalized_center = camera_center / camera_focus;
     glm::vec2 normalized_coord = ((image_coord / camera_focus) - (normalized_center) );
-    double r_2 = glm::dot(normalized_coord, normalized_coord);
 
+    double r_2 = glm::dot(normalized_coord, normalized_coord);
     double radial_distort = (
         1.0
         + distortion_radial.x * r_2

@@ -6,8 +6,8 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/FindTBB)
 set(CMAKE_CXX_STANDARD 14)
 
 set(USE_IMGUI TRUE)
-set(WITH_ROS TRUE)
-set(ARCLAB TRUE)
+#set(WITH_ROS TRUE)
+#set(ARCLAB TRUE)
 
 set(VTK_DIR "~/develop/opensource/VTK-build/")
 set(TBB_ROOT_DIR "~/develop/opensource/tbb2018_20171205oss")
@@ -115,7 +115,7 @@ add_executable(dvrk-OpenGLViewer
         VTKRenderProcedure.cpp VTKRenderProcedure.h
         IImageAligned.h
         VTKCameraManager.cpp VTKCameraManager.h
-        StaticStereoImageSource.cpp StaticStereoImageSource.h SimpleTimer.cpp SimpleTimer.h)
+        StaticStereoImageSource.cpp StaticStereoImageSource.h SimpleTimer.cpp SimpleTimer.h CubeAxesVTKRenderProcedure.cpp CubeAxesVTKRenderProcedure.h)
 
 file(GLOB FRAG_SHADERS "*.frag")
 file(GLOB VERT_SHADERS "*.vert")
