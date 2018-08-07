@@ -22,7 +22,7 @@ public:
     ROSStateProvider(int millis, ros::NodeHandlePtr nh);
 
     void callback();
-    void update_handeye();
+    void update_handeye(RobotState& r_state);
     void read_state(PSM *psm, PsmState& output_psm);
 
     RobotState      *robot_state;

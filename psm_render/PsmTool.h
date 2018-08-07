@@ -2,6 +2,8 @@
 
 // c++ std library
 #include <string>
+#include <mutex>
+
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -128,6 +130,7 @@ public:
 			1.0f,
 	};
 
+    std::mutex data_mutex;
 protected:
 
 private:

@@ -30,6 +30,9 @@ private:
     RobotState       *robotState;
 
     ROSStateProvider *rosStateProvider;
+
+    bool firstTime;
+
 };
 
 

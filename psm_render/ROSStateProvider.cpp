@@ -5,7 +5,7 @@
 
 
 ROSStateProvider::ROSStateProvider(int millis, ros::NodeHandlePtr nh):
-    SimpleTimer(millis), robot_state(nullptr){
+    SimpleTimer(millis),robot_state(nullptr){
     psm1 = new PSM(*nh, 1);
     psm2 = new PSM(*nh, 2);
 }
@@ -49,33 +49,42 @@ void ROSStateProvider::read_state(PSM *psm, PsmState& output_psm) {
 
 }
 
-void ROSStateProvider::update_handeye(){
+void ROSStateProvider::update_handeye(RobotState &r_state){
     tf::StampedTransform transform;
     Eigen::Affine3d affine_bHc;
 
     tf_listener.lookupTransform("/PSM1_base", "/cam0", ros::Time(0),transform);
     tf::transformTFToEigen(transform, affine_bHc);
-    robot_state->psm1.bHc = affine_bHc.matrix();
-    robot_state->psm1.bHc.block(0, 3, 3, 1) *= 1000.0;
-    robot_state->psm1.bHc_corr = robot_state->psm1.bHc;
+    r_state.psm1.bHc = affine_bHc.matrix();
+    r_state.psm1.bHc.block(0, 3, 3, 1) *= 1000.0;
+    r_state.psm1.bHc_corr = r_state.psm1.bHc;
 
     tf_listener.lookupTransform("/PSM2_base", "/cam0", ros::Time(0),transform);
     tf::transformTFToEigen(transform, affine_bHc);
-    robot_state->psm2.bHc = affine_bHc.matrix();
-    robot_state->psm2.bHc.block(0, 3, 3, 1) *= 1000.0;
-    robot_state->psm2.bHc_corr = robot_state->psm2.bHc;
+    r_state.psm2.bHc = affine_bHc.matrix();
+    r_state.psm2.bHc.block(0, 3, 3, 1) *= 1000.0;
+    r_state.psm2.bHc_corr = r_state.psm2.bHc;
 
 }
 
 void ROSStateProvider::callback() {
-    if (robot_state && psm1 && psm2) {
+
+    RobotState t_robotState = RobotState();
+
+    update_handeye(t_robotState);
+    read_state(psm1, t_robotState.psm1);
+    t_robotState.psm1.update_jaw();
+    read_state(psm2, t_robotState.psm2);
+    t_robotState.psm2.update_jaw();
+
+    try
+    {
         std::lock_guard<std::mutex> lock(robot_state->data_mutex);
-
-        update_handeye();
-
-        read_state(psm1, robot_state->psm1);
-        robot_state->psm1.update_jaw();
-        read_state(psm2, robot_state->psm2);
-        robot_state->psm2.update_jaw();
+        *robot_state = t_robotState;
+    }
+    catch (std::exception& e) {
+        std::cout << "Robot State is not ready yet." << std::endl;
+        std::cerr << e.what() << std::endl;
+        return;
     }
 }

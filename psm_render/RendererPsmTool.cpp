@@ -23,6 +23,7 @@ RendererPsmTool::RendererPsmTool(vtkSmartPointer<vtkRenderer> ren, std::string m
     light->SetAmbientColor(1,1,1);
 
     renderer->AddLight(light);
+    robotState = new RobotState();
 }
 
 void RendererPsmTool::load_psm_tools(PsmTool::ToolType psm1_type, PsmTool::ToolType psm2_type ) {
@@ -46,29 +47,56 @@ void RendererPsmTool::load_psm_tools(PsmTool::ToolType psm1_type, PsmTool::ToolT
     }
 }
 
-
-void RendererPsmTool::update_actors(RobotState * robot_state) {
+void RendererPsmTool::update_robotState(RobotState * robot_state){
     if (robot_state) {
-        std::lock_guard<std::mutex> lock(robot_state->data_mutex);
+        try{
+            std::lock_guard<std::mutex> lock(robotState->data_mutex);
+            *robotState = *robot_state;
+        }
+        catch (std::exception& e) {
+            std::cout << "Robot State is not ready yet." << std::endl;
+            std::cerr << e.what() << std::endl;
+            return;
+        }
+    }
+}
+
+
+void RendererPsmTool::update_actors() {
+
+    try{
+        std::lock_guard<std::mutex> lock(robotState->data_mutex);
+
         if (tools[0]) {
             Eigen::Matrix<double, 4, 4, Eigen::RowMajor> cHb_1;
-            cHb_1 = robot_state->psm1.bHc.inverse();
+            cHb_1 = robotState->psm1.bHc.inverse();
+
+            std::lock_guard<std::mutex> lock_tool(tools[0]->data_mutex);
             tools[0]->Update_Base_Transform(cHb_1.data());
 
-            tools[0]->Update_Shaft_Transform(robot_state->psm1.bHj4.data());
-            tools[0]->Update_Logo_Transform(robot_state->psm1.bHj5.data());
-            tools[0]->Update_JawL_Transform(robot_state->psm1.bHeL.data());
-            tools[0]->Update_JawR_Transform(robot_state->psm1.bHeR.data());
+            tools[0]->Update_Shaft_Transform(robotState->psm1.bHj4.data());
+            tools[0]->Update_Logo_Transform(robotState->psm1.bHj5.data());
+            tools[0]->Update_JawL_Transform(robotState->psm1.bHeL.data());
+            tools[0]->Update_JawR_Transform(robotState->psm1.bHeR.data());
+
         }
         if (tools[1]) {
             Eigen::Matrix<double, 4, 4, Eigen::RowMajor> cHb_2;
-            cHb_2 = robot_state->psm2.bHc.inverse();
+            cHb_2 = robotState->psm2.bHc.inverse();
+
+            std::lock_guard<std::mutex> lock_tool(tools[1]->data_mutex);
             tools[1]->Update_Base_Transform(cHb_2.data());
 
-            tools[1]->Update_Shaft_Transform(robot_state->psm2.bHj4.data());
-            tools[1]->Update_Logo_Transform(robot_state->psm2.bHj5.data());
-            tools[1]->Update_JawL_Transform(robot_state->psm2.bHeL.data());
-            tools[1]->Update_JawR_Transform(robot_state->psm2.bHeR.data());
+            tools[1]->Update_Shaft_Transform(robotState->psm2.bHj4.data());
+            tools[1]->Update_Logo_Transform(robotState->psm2.bHj5.data());
+            tools[1]->Update_JawL_Transform(robotState->psm2.bHeL.data());
+            tools[1]->Update_JawR_Transform(robotState->psm2.bHeR.data());
         }
     }
+    catch (std::exception& e) {
+        std::cout << "Robot State is not ready yet." << std::endl;
+        std::cerr << e.what() << std::endl;
+        return;
+    }
+
 }

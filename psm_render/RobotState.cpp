@@ -33,9 +33,32 @@ void PsmState::update_jaw() {
     bHeR = bHe * eHeR;
 }
 
+PsmState::PsmState(const PsmState &c) :
+    bHe(c.bHe), bHj4(c.bHj4), bHj5(c.bHj5),
+    bHeL(c.bHeL), bHeR(c.bHeR), eHeL(c.eHeL),
+    eHeR(c.eHeR), bHc(c.bHc), bHc_corr(c.bHc_corr)
+{
+}
+
+PsmState & PsmState::operator = (const PsmState & c) {
+    bHe  = c.bHe;
+    bHj4 = c.bHj4;
+    bHj5 = c.bHj5;
+    bHeL = c.bHeL;
+    bHeR = c.bHeR;
+    eHeL = c.eHeL;
+    eHeR = c.eHeR;
+    bHc  = c.bHc;
+    bHc_corr = c.bHc_corr;
+
+    return *this;
+}
+
 RobotState::RobotState() {
     b1Hb2.setIdentity();
     b1Hb2_corr.setIdentity();
+    psm1 = PsmState();
+    psm2 = PsmState();
 }
 
 RobotState::RobotState(const RobotState &r) :
@@ -43,9 +66,9 @@ RobotState::RobotState(const RobotState &r) :
 }
 
 RobotState & RobotState::operator = (const RobotState & r) {
-    std::lock_guard<std::mutex> self_lock(this->data_mutex);
     psm1 = r.psm1;
     psm2 = r.psm2;
+
     b1Hb2 = r.b1Hb2;
     b1Hb2_corr = r.b1Hb2_corr;
     return *this;

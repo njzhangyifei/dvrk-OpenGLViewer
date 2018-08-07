@@ -19,6 +19,8 @@ public:
     Eigen::Matrix<double, 4, 4, Eigen::RowMajor> bHc_corr;
 
     PsmState();
+    PsmState(const PsmState & c);
+    PsmState & operator = (const PsmState & c);
 
     void update_jaw();
 };

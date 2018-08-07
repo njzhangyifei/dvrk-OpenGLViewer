@@ -19,7 +19,8 @@ public:
     RendererPsmTool(vtkSmartPointer<vtkRenderer> r, std::string model_dir);
 
     void load_psm_tools(PsmTool::ToolType psm1_type, PsmTool::ToolType psm2_type);
-    void update_actors(RobotState * robot_state);
+    void update_robotState(RobotState * robot_state);
+    void update_actors();
 
     std::unique_ptr<PsmTool> tools[2];
 
@@ -29,6 +30,8 @@ protected:
     vtkSmartPointer<vtkLight> light;
     std::string model_dir;
     std::string config_dir;
+
+    RobotState * robotState;
 };
 
 

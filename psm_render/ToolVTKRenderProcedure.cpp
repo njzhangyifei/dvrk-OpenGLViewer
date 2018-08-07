@@ -30,7 +30,8 @@
 #include <imgui.h>
 #endif
 
-ToolVTKRenderProcedure::ToolVTKRenderProcedure(ros::NodeHandlePtr nh):m_nh(nh){}
+ToolVTKRenderProcedure::ToolVTKRenderProcedure(ros::NodeHandlePtr nh):m_nh(nh), firstTime(true){
+}
 
 void ToolVTKRenderProcedure::vtk_setup(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) {
     VTKRenderProcedure::vtk_setup(stereoWindow, context, is_left);
@@ -50,22 +51,23 @@ void ToolVTKRenderProcedure::vtk_setup(StereoWindow *stereoWindow, GLFWwindow *c
         //Intialize psm rendering
         psmToolRenderer = new RendererPsmTool(renderer, "/home/arclab/catkin_ws/src/dvrk-OpenGLViewer/model/");
 
-//      LND,
-//		MCS,
-//		ProGrasp,
-//		CF,
-//		MBF,
-//		RTS,
-        psmToolRenderer->load_psm_tools(PsmTool::ToolType::LND, PsmTool::ToolType::LND);
-
         renderer->UseDepthPeelingOff();
         renderer->EraseOn();
         renderer->SetBackgroundAlpha(0.0);
         renderer->SetBackground(0.275, 0.510, 0.706);
 
+        //      LND,
+        //		MCS,
+        //		ProGrasp,
+        //		CF,
+        //		MBF,
+        //		RTS,
+        psmToolRenderer->load_psm_tools(PsmTool::ToolType::LND, PsmTool::ToolType::LND);
+
         vtkWin->AddRenderer(renderer);
 
         rosStateProvider->start();
+
     }
 }
 
@@ -74,29 +76,30 @@ ToolVTKRenderProcedure::~ToolVTKRenderProcedure(){
 }
 
 void ToolVTKRenderProcedure::execute(StereoWindow *stereoWindow, GLFWwindow *context, bool is_left) {
-
+    if(!rosStateProvider->robot_state) return;    //If we have nothing here just exit
 
     auto start = std::chrono::system_clock::now();
 
-    if(!is_left){
-        RobotState t_robotState;
+    try
+    {
+        std::lock_guard<std::mutex> lock(robotState->data_mutex);
 
-        //Update the transforms for PSM tool here
-        if(!rosStateProvider->robot_state) return;    //If we have nothing here just exit
-
-        try
-        {
-            std::lock_guard<std::mutex> lock(robotState->data_mutex);
-            t_robotState = *robotState;
-
-        } catch (std::exception& e) {
-            std::cout << "Robot State is not ready yet." << std::endl;
-            std::cerr << e.what() << std::endl;
-            return;
+        if(firstTime){
+            //Update the transforms for PSM tool here
+            psmToolRenderer->update_robotState(robotState);
+            rosStateProvider->stop();
+            firstTime = false;
         }
 
-        psmToolRenderer->update_actors(&t_robotState);
+
+    } catch (std::exception& e) {
+        std::cout << "Robot State is not ready yet." << std::endl;
+        std::cerr << e.what() << std::endl;
+        return;
     }
+
+    psmToolRenderer->update_actors();
+
 
     // set transparency
     texture_renderer->use_transparency = true;
