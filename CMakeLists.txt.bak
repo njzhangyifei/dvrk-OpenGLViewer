@@ -4,7 +4,6 @@ project(dvrk_OpenGLViewer)
 #list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/FindTBB)
 
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
 set(USE_IMGUI FALSE) #Set to false, otherwise we buid 2 img gui in this workspace. PLEASE FIX
                      #Second imgui is built in EKF_OpenGL
@@ -46,11 +45,6 @@ find_package(VTK REQUIRED)
 message(STATUS "VTK_VERSION: ${VTK_VERSION}")
 include(${VTK_USE_FILE})
 
-#eigen
-find_package(Eigen3 REQUIRED )
-message(STATUS "${EIGEN3_INCLUDE_DIR}")
-include_directories(${EIGEN3_INCLUDE_DIR})
-
 # Find OpenCV
 find_package( OpenCV REQUIRED )
 message(STATUS "${OpenCV_VERSION}")
@@ -61,8 +55,6 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   image_transport
   sensor_msgs
-  dvrk_components_ros
-  tf_conversions
 )
 catkin_package(
   INCLUDE_DIRS include
@@ -174,19 +166,6 @@ add_executable(viewer_only  examples/viewer_only.cpp)
 
 target_link_libraries(viewer_only ${PROJECT_NAME} ${OPENGL_LIBRARIES})
 
-add_executable(render_psm psm_render/main.cpp
-                          psm_render/PsmTool.cpp
-                          psm_render/PsmTool.h
-                          psm_render/RendererPsmTool.cpp
-                          psm_render/RendererPsmTool.h
-                          psm_render/RobotState.cpp
-                          psm_render/RobotState.h
-                          psm_render/ToolVTKRenderProcedure.cpp
-                          psm_render/ToolVTKRenderProcedure.h
-                          psm_render/ROSStateProvider.cpp
-                          psm_render/ROSStateProvider.h)
-
-target_link_libraries(render_psm ${PROJECT_NAME}  ${Eigen3_LIBRARIES})
 
 file(GLOB FRAG_SHADERS "src/*.frag")
 file(GLOB VERT_SHADERS "src/*.vert")
